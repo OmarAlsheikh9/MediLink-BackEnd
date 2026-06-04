@@ -6,6 +6,32 @@ import sendOTP from "../utils/sendOTP.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const createToken = function (id) {
+  return JWT.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+const createSendToken = function (user, statusCode, res) {
+  const token = createToken(user.id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.COOKIES_EXPIRES_IN * 24 * 60 * 60 * 1000,
+    ),
+    httpOnly: true,
+  };
+  if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+  res.cookie("jwt", token, cookieOptions);
+  user.password = undefined;
+  res.status(statusCode).json({
+    status: "succes",
+    data: {
+      user,
+    },
+    token,
+  });
+};
+
 export const signUp = catchAsync(async (req, res, next) => {
   const { firstName, lastName, phone, password, gender, day, month, year } =
     req.body;
@@ -62,20 +88,21 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
   });
   await newUser.save();
   await client.del(`signUp:${phone}`);
-  res.status(201).json({
-    status: "success",
-    message: "account created successfully",
-    data: {
-      user: {
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        phone: newUser.phone,
-        gender: newUser.gender,
-        birthDate: newUser.birthDate,
-        role: newUser.role,
-      },
-    },
-  });
+  // res.status(201).json({
+  //   status: "success",
+  //   message: "account created successfully",
+  //   data: {
+  //     user: {
+  //       firstName: newUser.firstName,
+  //       lastName: newUser.lastName,
+  //       phone: newUser.phone,
+  //       gender: newUser.gender,
+  //       birthDate: newUser.birthDate,
+  //       role: newUser.role,
+  //     },
+  //   },
+  // });
+  createSendToken(newUser, 201, res);
 });
 export const login = catchAsync(async (req, res, next) => {
   const { phone, password } = req.body;
@@ -85,12 +112,27 @@ export const login = catchAsync(async (req, res, next) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
-  user.password = undefined;
-  res.status(200).json({
-    status: "success",
-    data: {
-      user,
-    },
-    token,
-  });
+  // user.password = undefined;
+  // res.status(200).json({
+  //   status: "success",
+  //   data: {
+  //     user,
+  //   },
+  //   token,
+  // });
+  createSendToken(user, 200, res);
 });
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError(
+          "you do not have thee permission to perform this action ",
+          401,
+        ),
+      );
+    }
+    next();
+  };
+};
