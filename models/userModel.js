@@ -63,15 +63,13 @@ const userSchema = new Mongoose.Schema({
 userSchema.virtual("isPreHashed").set(function (val) {
   this._isPreHashed = val;
 });
+userSchema.pre("save", async function () {
+  if (!this.isModified("password") || this._isPreHashed) return;
+  this.password = await bcrypt.hash(this.password, 12);
+});
 // userSchema.pre("save", function (next) {
 //   if (!this.isModified("password") || this.isNew) return next();
 //   this.passwordChangedAt = Date.now() - 1000;
-//   next();
-// });
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")||this._isPreHashed) return next();
-
-//   this.password = await bcrypt.hash(this.password, 12);
 //   next();
 // });
 // userSchema.pre(/^find/, function (next) { // when i make signup this middleware return error for next

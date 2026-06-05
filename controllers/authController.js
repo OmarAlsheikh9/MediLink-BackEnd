@@ -5,9 +5,10 @@ import client from "../config/redis.js";
 import sendOTP from "../utils/sendOTP.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { egyptianPhone } from "../utils/validators.js";
 
 const createToken = function (id) {
-  return JWT.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
@@ -109,9 +110,9 @@ export const login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ phone }).select("+password");
   if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError("invalid phone or password", 401));
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+  // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  //   expiresIn: process.env.JWT_EXPIRES_IN,
+  // });
   // user.password = undefined;
   // res.status(200).json({
   //   status: "success",
@@ -136,3 +137,107 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+export const forgetpassword = catchAsync(async (req, res, next) => {
+  const { phone } = req.body;
+
+  const result = egyptianPhone.safeParse(phone);
+
+  if (!result.success) {
+    return res.status(400).json({
+      status: "fail",
+      errors: result.error.flatten(),
+    });
+  }
+
+  const user = await User.findOne({ phone });
+
+  if (!user) {
+    return next(new AppError("user not found", 404));
+  }
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  await client.set(
+    `forgetPassword:${phone}`,
+    JSON.stringify({
+      otp,
+      verified: false,
+      attempts: 0,
+    }),
+    { EX: 300 },
+  );
+  if (process.env.NODE_ENV === "development") {
+    console.log("OTP:", otp);
+  } else {
+    await sendOTP(phone, otp);
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "check your phone SMS we send OTP verification to you",
+    phone,
+  });
+});
+export const verifyForgetPassword = catchAsync(async (req, res, next) => {
+  const { phone, otp } = req.body;
+  const data = await client.get(`forgetPassword:${phone}`);
+
+  if (!data) {
+    return next(new AppError("OTP expired", 400));
+  }
+
+  const parsed = JSON.parse(data);
+
+  if (parsed.attempts >= 3) {
+    await client.del(`forgetPassword:${phone}`);
+    return next(new AppError("Too many attempts", 429));
+  }
+
+  if (parsed.otp !== +otp) {
+    parsed.attempts += 1;
+
+    await client.set(`forgetPassword:${phone}`, JSON.stringify(parsed), {
+      EX: 300,
+    });
+
+    return next(new AppError("Invalid OTP", 400));
+  }
+
+  parsed.verified = true;
+
+  await client.set(`forgetPassword:${phone}`, JSON.stringify(parsed), {
+    EX: 300,
+  });
+  res.status(200).json({
+    status: "success",
+    phone,
+  });
+});
+export const resetPassword = catchAsync(async (req, res, next) => {
+  const { phone, password } = req.body;
+
+  const data = await client.get(`forgetPassword:${phone}`);
+
+  if (!data) {
+    return next(new AppError("OTP expired", 400));
+  }
+
+  const parsed = JSON.parse(data);
+
+  if (!parsed.verified) {
+    return next(new AppError("OTP not verified", 401));
+  }
+
+  const user = await User.findOne({ phone });
+
+  if (!user) {
+    return next(new AppError("user not found", 404));
+  }
+
+  user.password = password;
+  await user.validate(["password"]); // validate only password
+  await user.save({ validateBeforeSave: false });
+
+  await client.del(`forgetPassword:${phone}`);
+
+  createSendToken(user, 200, res);
+});

@@ -1,0 +1,57 @@
+import mongoose from "mongoose";
+
+const doctorProfileSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
+
+    specialization: {
+      type: String,
+      required: true,
+    },
+
+    fees: {
+      type: Number,
+      required: true,
+    },
+
+    experienceYears: {
+      type: Number,
+      default: 0,
+    },
+
+    workingDays: [
+      {
+        type: String,
+        enum: [
+          "saturday",
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+        ],
+      },
+    ],
+
+    startTime: String,
+    endTime: String,
+
+    averageVisitDuration: {
+      type: Number,
+      default: 15,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+const DoctorProfile = mongoose.model("DoctorProfile", doctorProfileSchema);
+
+export default DoctorProfile;
