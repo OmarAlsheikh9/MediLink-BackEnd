@@ -1,5 +1,4 @@
 import Mongoose from "mongoose";
-import validator from "validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 const userSchema = new Mongoose.Schema({
@@ -67,16 +66,6 @@ userSchema.pre("save", async function () {
   if (!this.isModified("password") || this._isPreHashed) return;
   this.password = await bcrypt.hash(this.password, 12);
 });
-// userSchema.pre("save", function (next) {
-//   if (!this.isModified("password") || this.isNew) return next();
-//   this.passwordChangedAt = Date.now() - 1000;
-//   next();
-// });
-// userSchema.pre(/^find/, function (next) { // when i make signup this middleware return error for next
-//   this.find({ active: { $ne: false } });
-//   console.log(this);
-//   next();
-// });
 userSchema.methods.correctPassword = async (
   candidatePassword,
   userpassword,

@@ -1,12 +1,13 @@
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import User from "../models/userModel.js";
+import PatientProfile from "../models/patientProfileModel.js";
 import client from "../config/redis.js";
 import sendOTP from "../utils/sendOTP.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { egyptianPhone } from "../utils/validators.js";
-
+import mongoose from "mongoose";
 const createToken = function (id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -80,49 +81,39 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
     JSON.parse(clientData);
 
   if (+otp !== +req.body.otp) return next(new AppError("invalid otp ", 400));
-  const newUser = new User({
-    firstName,
-    lastName,
-    gender,
-    birthDate,
-    phone,
-    password,
-    isPreHashed: true,
-  });
-  await newUser.save();
-  await client.del(`signUp:${phone}`);
-  // res.status(201).json({
-  //   status: "success",
-  //   message: "account created successfully",
-  //   data: {
-  //     user: {
-  //       firstName: newUser.firstName,
-  //       lastName: newUser.lastName,
-  //       phone: newUser.phone,
-  //       gender: newUser.gender,
-  //       birthDate: newUser.birthDate,
-  //       role: newUser.role,
-  //     },
-  //   },
-  // });
-  createSendToken(newUser, 201, res);
+  // we should create account for user (role=patient) + patientProfile
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try{
+    const newUser = new User({
+      firstName,
+      lastName,
+      gender,
+      birthDate,
+      phone,
+      password,
+      isPreHashed: true,
+    });
+    await newUser.save({session});
+    await PatientProfile.create(
+      [{user:newUser._id}],
+      {session}
+    );
+    await session.commitTransaction();
+    session.endSession();
+    await client.del(`signUp:${phone}`);
+    createSendToken(newUser, 201, res);
+  }catch(err){
+    await session.abortTransaction();
+    session.endSession();
+    return next(new AppError(err.message, 400))
+  }
 });
 export const login = catchAsync(async (req, res, next) => {
   const { phone, password } = req.body;
   const user = await User.findOne({ phone }).select("+password");
   if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError("invalid phone or password", 401));
-  // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-  //   expiresIn: process.env.JWT_EXPIRES_IN,
-  // });
-  // user.password = undefined;
-  // res.status(200).json({
-  //   status: "success",
-  //   data: {
-  //     user,
-  //   },
-  //   token,
-  // });
   createSendToken(user, 200, res);
 });
 
