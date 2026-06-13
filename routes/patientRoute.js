@@ -1,0 +1,13 @@
+import express from "express";
+import authenticate from "../middlewares/authenticate.js";
+import { restrictTo } from "../controllers/authController.js";
+import { getAllPateints, getPateintById, deletePateint, changeActiveStatus, deleteManyPateints } from "../controllers/patientController.js";
+const router = express.Router();
+router.use(authenticate, restrictTo("admin"));
+
+router.get("/",  getAllPateints);
+router.get("/:id", getPateintById);
+router.delete("/:id", deletePateint);
+router.patch("/:id/active", changeActiveStatus);
+router.delete("/deleteMany", deleteManyPateints);
+export default router;

@@ -11,22 +11,22 @@ const specializationRouter = express.Router();
 specializationRouter.use(authenticate, restrictTo("admin"));
 
 specializationRouter.get(
-  "/specializations",
+  "/",
   getAllSpecializations,
 );
 
 specializationRouter.post(
-  "/specializations",
+  "/",
   validate(specializationSchema),
   createSpecialization,
 );
 specializationRouter.put(
-  "/specializations/:id",
+  "/:id",
   validate(specializationSchema),
   updateSpecialization,
 );
 specializationRouter.delete(
-  "/specializations/:id",
+  "/:id",
   deleteSpecialization,
 );
 export default specializationRouter;
