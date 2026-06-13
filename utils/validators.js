@@ -419,3 +419,104 @@ export const updatePasswordSchema = z
     message: "passwords do not match",
     path: ["confirmpassword"],
   });
+export const createreceptionistSchema = z
+  .object({
+    // ─── User fields ────────────────────────────────────────────────────────────
+    firstName: z
+      .string({ required_error: "first name is required" })
+      .min(2, "first name must be at least 2 characters")
+      .max(50, "first name must be at most 50 characters")
+      .trim(),
+
+    lastName: z
+      .string({ required_error: "last name is required" })
+      .min(2, "last name must be at least 2 characters")
+      .max(50, "last name must be at most 50 characters")
+      .trim(),
+
+    phone: z
+      .string({ required_error: "phone is required" })
+      .regex(
+        /^01[0125][0-9]{8}$/,
+        "phone must be a valid Egyptian number (e.g. 01012345678)",
+      ),
+
+    password: z
+      .string({ required_error: "password is required" })
+      .min(8, "password must be at least 8 characters")
+      .regex(/[A-Z]/, "password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "password must contain at least one number"),
+
+    confirmPassword: z.string({
+      required_error: "confirm password is required",
+    }),
+
+    gender: z.enum(["male", "female"], {
+      required_error: "gender is required",
+      invalid_type_error: "gender must be male or female",
+    }),
+
+    // ─── DoctorProfile fields ────────────────────────────────────────────────────
+    education: z
+      .string({ required_error: "education is required" })
+      .min(2, "education must be at least 2 characters")
+      .max(100, "education must be at most 100 characters")
+      .trim(),
+
+    status: z
+      .string({ required_error: "status is required" })
+      .min(2, "status must be at least 2 characters")
+      .max(100, "status must be at most 100 characters")
+      .trim(),
+
+    workingDays: z
+      .array(
+        z.enum(
+          [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+          ],
+          {
+            invalid_type_error: "each working day must be a valid day name",
+          },
+        ),
+      )
+      .min(1, "at least one working day is required")
+      .max(7, "working days cannot exceed 7"),
+
+    startTime: z
+      .string({ required_error: "start time is required" })
+      .regex(timeRegex, "start time must be in HH:MM format (e.g. 09:00)"),
+    birthDate: z
+      .string({ required_error: "birth date is required" })
+      .refine(
+        (val) => !isNaN(Date.parse(val)),
+        "birthDate must be a valid date",
+      )
+      .refine(
+        (val) => new Date(val) < new Date(),
+        "birthDate must be in the past",
+      ),
+    endTime: z
+      .string({ required_error: "end time is required" })
+      .regex(timeRegex, "end time must be in HH:MM format (e.g. 17:00)"),
+  })
+  // ─── Cross-field validations ───────────────────────────────────────────────────
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine(
+    (data) => {
+      const [startH, startM] = data.startTime.split(":").map(Number);
+      const [endH, endM] = data.endTime.split(":").map(Number);
+      return endH * 60 + endM > startH * 60 + startM;
+    },
+    { message: "end time must be after start time", path: ["endTime"] },
+  );

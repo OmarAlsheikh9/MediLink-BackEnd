@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-
-const doctorProfileSchema = new mongoose.Schema(
+import { required } from "zod/mini";
+const ReceptionistSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -8,18 +8,6 @@ const doctorProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
-    specialization: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Specialization",
-      default: null,
-    },
-
-    experienceYears: {
-      type: Number,
-      default: 0,
-    },
-
     workingDays: [
       {
         type: String,
@@ -34,6 +22,14 @@ const doctorProfileSchema = new mongoose.Schema(
         ],
       },
     ],
+    education: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      required: true,
+    },
 
     startTime: String,
     endTime: String,
@@ -42,12 +38,13 @@ const doctorProfileSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-doctorProfileSchema.pre(/^find/, function () {
+ReceptionistSchema.pre(/^find/, function () {
   this.populate({
     path: `user`,
-    select: "-__v -passwordChangedAt -passwordResetExpires -passwordResetToken",
+    select:
+      "-__v -_id -passwordChangedAt -passwordResetExpires -passwordResetToken",
   });
 });
-const DoctorProfile = mongoose.model("DoctorProfile", doctorProfileSchema);
+const Receptionist = mongoose.model("Receptionist", ReceptionistSchema);
 
-export default DoctorProfile;
+export default Receptionist;

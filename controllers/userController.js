@@ -1,6 +1,7 @@
 import { deleteOne, getOne, updateOne, getAll } from "./handelerFactory.js";
 import User from "../models/userModel.js";
 import DoctorProfile from "../models/doctorProfileModel.js";
+import Receptionist from "../models/receptionistModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 export const getOneUser = getOne(User);
@@ -18,7 +19,7 @@ export const getMyProfile = catchAsync(async (req, res, next) => {
   const profileModels = {
     doctor: DoctorProfile,
     // patient: PatientProfile,
-    //reception:ReceptionProfile
+    reception: Receptionist,
   };
 
   const Model = profileModels[user.role];
