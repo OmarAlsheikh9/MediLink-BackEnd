@@ -3,7 +3,6 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import User from "../models/userModel.js";
 import DoctorProfile from "../models/doctorProfileModel.js";
-import { APIFeatures } from "../utils/apiFeatures.js";
 import flattenAndRespond from "../utils/flattenAndRespond.js";
 
 export const createDoctor = catchAsync(async (req, res, next) => {
@@ -90,21 +89,14 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
     limit = 10,
   } = req.query;
 
-  const matchStage = {};
-  if (specialization)
-    matchStage.specialization = new RegExp(specialization, "i");
-  if (experienceYears) matchStage.experienceYears = Number(experienceYears); // fix: was RegExp
+  const skip = (Number(page) - 1) * Number(limit);
 
   const userMatchStage = {};
   if (firstName) userMatchStage["user.firstName"] = new RegExp(firstName, "i");
   if (lastName) userMatchStage["user.lastName"] = new RegExp(lastName, "i");
   if (phone) userMatchStage["user.phone"] = new RegExp(phone, "i");
 
-  const skip = (Number(page) - 1) * Number(limit);
-
   const doctors = await DoctorProfile.aggregate([
-    { $match: matchStage },
-
     {
       $lookup: {
         from: "users",
@@ -116,15 +108,38 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
 
     { $unwind: "$user" },
 
+    {
+      $lookup: {
+        from: "specializations",
+        localField: "specialization",
+        foreignField: "_id",
+        as: "specialization",
+      },
+    },
+
+    {
+      $unwind: {
+        path: "$specialization",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
     { $match: userMatchStage },
 
     {
+      $match: experienceYears
+        ? { experienceYears: Number(experienceYears) }
+        : {},
+    },
+
+    {
       $project: {
-        specialization: 1,
         experienceYears: 1,
         workingDays: 1,
         startTime: 1,
         endTime: 1,
+        specialization: 1,
+
         "user.firstName": 1,
         "user.lastName": 1,
         "user.phone": 1,
@@ -140,7 +155,20 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
     { $limit: Number(limit) },
   ]);
 
-  flattenAndRespond(res, { key: "doctors", data: doctors });
+  // flatten user into root
+  const flattened = doctors.map((doc) => ({
+    ...doc,
+    ...doc.user,
+    user: undefined,
+  }));
+
+  res.status(200).json({
+    status: "success",
+    length: flattened.length,
+    data: {
+      doctors: flattened,
+    },
+  });
 });
 
 export const getDoctor = catchAsync(async (req, res, next) => {
@@ -148,8 +176,12 @@ export const getDoctor = catchAsync(async (req, res, next) => {
 
   if (!doctor) return next(new AppError("doctor not found", 404));
 
-  flattenAndRespond(res, { key: "doctor", data: doctor });
+  res.status(200).json({
+    status: "success",
+    data: { doctor },
+  });
 });
+
 export const updateDoctor = catchAsync(async (req, res, next) => {
   delete req.body.user;
 
@@ -217,11 +249,13 @@ export const deleteDoctor = catchAsync(async (req, res, next) => {
 
 export const searchUserByPhone = catchAsync(async (req, res, next) => {
   const { phone } = req.query;
+
   if (!phone) return next(new AppError("phone query param is required", 400));
 
   const user = await User.findOne({ phone }).select(
     "firstName lastName phone role gender birthDate",
   );
+
   if (!user) return next(new AppError("no user found", 404));
 
   res.status(200).json({
