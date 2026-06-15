@@ -27,15 +27,42 @@ export const signUpSchema = z
 
     phone: egyptianPhone,
 
-    password: z
-      .string({
-        required_error: "password is required",
-        invalid_type_error: "password must be a string",
-      })
-      .min(8, "password must be at least 8 characters")
-      .regex(/[A-Z]/, "password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "password must contain at least one number"),
+    password: z.string().superRefine((val, ctx) => {
+      if (val.length < 8) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must be at least 8 characters long",
+        });
+      }
 
+      if (!/[a-z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one lowercase letter",
+        });
+      }
+
+      if (!/[A-Z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one uppercase letter",
+        });
+      }
+
+      if (!/[0-9]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one number",
+        });
+      }
+
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one special character",
+        });
+      }
+    }),
     confirmpassword: z.string({
       required_error: "please confirm your password",
       invalid_type_error: "password must be a string",
@@ -139,12 +166,42 @@ export const createDoctorSchema = z
         "phone must be a valid Egyptian number (e.g. 01012345678)",
       ),
 
-    password: z
-      .string({ required_error: "password is required" })
-      .min(8, "password must be at least 8 characters")
-      .regex(/[A-Z]/, "password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "password must contain at least one number"),
+    password: z.string().superRefine((val, ctx) => {
+      if (val.length < 8) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must be at least 8 characters long",
+        });
+      }
+
+      if (!/[a-z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one lowercase letter",
+        });
+      }
+
+      if (!/[A-Z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one uppercase letter",
+        });
+      }
+
+      if (!/[0-9]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one number",
+        });
+      }
+
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one special character",
+        });
+      }
+    }),
 
     confirmPassword: z.string({
       required_error: "confirm password is required",
@@ -441,13 +498,42 @@ export const createreceptionistSchema = z
         "phone must be a valid Egyptian number (e.g. 01012345678)",
       ),
 
-    password: z
-      .string({ required_error: "password is required" })
-      .min(8, "password must be at least 8 characters")
-      .regex(/[A-Z]/, "password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "password must contain at least one number"),
+    password: z.string().superRefine((val, ctx) => {
+      if (val.length < 8) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must be at least 8 characters long",
+        });
+      }
 
+      if (!/[a-z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one lowercase letter",
+        });
+      }
+
+      if (!/[A-Z]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one uppercase letter",
+        });
+      }
+
+      if (!/[0-9]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one number",
+        });
+      }
+
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Password must contain at least one special character",
+        });
+      }
+    }),
     confirmPassword: z.string({
       required_error: "confirm password is required",
     }),
@@ -522,19 +608,17 @@ export const createreceptionistSchema = z
   );
 
 ///////////////////////////////////////////////////////////////////////////////////////
-const dateString = z
-  .string()
-  .refine(
-    (val) => !isNaN(Date.parse(val)),
-    "must be a valid date (YYYY-MM-DD)"//"2026-04-13"
-  );
+const dateString = z.string().refine(
+  (val) => !isNaN(Date.parse(val)),
+  "must be a valid date (YYYY-MM-DD)", //"2026-04-13"
+);
 
 export const appointmentQuerySchema = z
   .object({
     date: dateString.optional(),
     startDate: dateString.optional(),
-    endDate:   dateString.optional(),
-    month: z.coerce 
+    endDate: dateString.optional(),
+    month: z.coerce
       .number({ invalid_type_error: "month must be a number" })
       .int()
       .min(1, "month must be between 1 and 12")
@@ -552,10 +636,10 @@ export const appointmentQuerySchema = z
   .refine(
     (data) => {
       const hasStart = data.startDate !== undefined;
-      const hasEnd   = data.endDate   !== undefined;
+      const hasEnd = data.endDate !== undefined;
       return hasStart === hasEnd; // both or neither
     },
-    { message: "startDate and endDate must both be provided together" }
+    { message: "startDate and endDate must both be provided together" },
   )
   // rule 2 — week view: endDate must be after startDate
   .refine(
@@ -565,7 +649,7 @@ export const appointmentQuerySchema = z
       }
       return true;
     },
-    { message: "endDate must be after startDate", path: ["endDate"] }
+    { message: "endDate must be after startDate", path: ["endDate"] },
   )
   // rule 3 — week view: max 7 days range
   .refine(
@@ -578,34 +662,37 @@ export const appointmentQuerySchema = z
       }
       return true;
     },
-    { message: "week range cannot exceed 7 days", path: ["endDate"] }
+    { message: "week range cannot exceed 7 days", path: ["endDate"] },
   )
   // rule 4 — month view: month and year must come together
   .refine(
     (data) => {
       const hasMonth = data.month !== undefined;
-      const hasYear  = data.year  !== undefined;
+      const hasYear = data.year !== undefined;
       return hasMonth === hasYear; // both or neither
     },
-    { message: "month and year must both be provided together" }
+    { message: "month and year must both be provided together" },
   )
   // rule 5 — must provide at least one view type
   .refine(
     (data) => {
-      const isDay   = data.date      !== undefined;
-      const isWeek  = data.startDate !== undefined;
-      const isMonth = data.month     !== undefined;
+      const isDay = data.date !== undefined;
+      const isWeek = data.startDate !== undefined;
+      const isMonth = data.month !== undefined;
       return isDay || isWeek || isMonth;
     },
-    { message: "provide date (day), startDate+endDate (week), or month+year (month)" }
+    {
+      message:
+        "provide date (day), startDate+endDate (week), or month+year (month)",
+    },
   )
   // rule 6 — can't mix view types
   .refine(
     (data) => {
-      const isDay   = data.date      !== undefined ? 1 : 0;
-      const isWeek  = data.startDate !== undefined ? 1 : 0;
-      const isMonth = data.month     !== undefined ? 1 : 0;
+      const isDay = data.date !== undefined ? 1 : 0;
+      const isWeek = data.startDate !== undefined ? 1 : 0;
+      const isMonth = data.month !== undefined ? 1 : 0;
       return isDay + isWeek + isMonth === 1; // exactly one view
     },
-    { message: "provide only one view type at a time: day, week, or month" }
+    { message: "provide only one view type at a time: day, week, or month" },
   );
