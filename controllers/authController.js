@@ -82,6 +82,7 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
 
   if (+otp !== +req.body.otp) return next(new AppError("invalid otp ", 400));
   // we should create account for user (role=patient) + patientProfile
+  ///////////////////////
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
