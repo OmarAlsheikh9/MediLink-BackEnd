@@ -4,21 +4,34 @@ import AppError from "../utils/appError.js";
 import User from "../models/userModel.js";
 import { APIFeatures } from "../utils/apiFeatures.js";
 
-export const getAllPateints = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(User.find({ role: "patient" }), req.query)
+export const getAllPatients = catchAsync(async (req, res, next) => {
+  const { role: _, ...safeQuery } = req.query;
+
+  const features = new APIFeatures(
+    User.find({ role: "patient" }).select("-password"),
+    safeQuery,
+  )
     .filter()
     .sort()
     .limitFields()
     .paginate();
-  
-  const pateints = await features.query;
-  res.status(200).json({ status: "success", data: { pateints } });
+
+  // re-apply role after APIFeatures runs to guarantee it
+  features.query = features.query.where({ role: "patient" });
+
+  const patients = await features.query;
+
+  res.status(200).json({
+    status: "success",
+    results: patients.length,
+    data: { patients },
+  });
 });
 export const getPateintById = catchAsync(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return next(new AppError("Invalid patient ID", 400));
   }
-  const pateint = await User.findById({ _id: req.params.id,role:"patient" });
+  const pateint = await User.findById({ _id: req.params.id, role: "patient" });
   if (!pateint) {
     return next(new AppError("Patient not found", 404));
   }
@@ -33,7 +46,9 @@ export const deletePateint = catchAsync(async (req, res, next) => {
     return next(new AppError("Patient not found", 404));
   }
   await pateint.deleteOne();
-  res.status(200).json({ status: "success", message: "Patient deleted successfully" });
+  res
+    .status(200)
+    .json({ status: "success", message: "Patient deleted successfully" });
 });
 export const changeActiveStatus = catchAsync(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -45,7 +60,10 @@ export const changeActiveStatus = catchAsync(async (req, res, next) => {
   }
   pateint.active = !pateint.active;
   await pateint.save();
-  res.status(200).json({ status: "success", message: `Patient is now ${pateint.active ? "active" : "inactive"}` });
+  res.status(200).json({
+    status: "success",
+    message: `Patient is now ${pateint.active ? "active" : "inactive"}`,
+  });
 });
 export const deleteManyPateints = catchAsync(async (req, res, next) => {
   const { ids } = req.body;
@@ -54,8 +72,13 @@ export const deleteManyPateints = catchAsync(async (req, res, next) => {
   }
   const invalidIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
   if (invalidIds.length > 0) {
-    return next(new AppError(`Invalid patient IDs: ${invalidIds.join(", ")}`, 400));
+    return next(
+      new AppError(`Invalid patient IDs: ${invalidIds.join(", ")}`, 400),
+    );
   }
   const result = await User.deleteMany({ _id: { $in: ids }, role: "patient" });
-  res.status(200).json({ status: "success", message: `${result.deletedCount} patients deleted successfully` });
+  res.status(200).json({
+    status: "success",
+    message: `${result.deletedCount} patients deleted successfully`,
+  });
 });
