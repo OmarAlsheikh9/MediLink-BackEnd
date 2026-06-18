@@ -208,7 +208,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
 });
 
 export const getDoctor = catchAsync(async (req, res, next) => {
-  const doctor = await DoctorProfile.findOne({ user: req.params.id }).lean();
+  const doctor = await DoctorProfile.findOne({ _id: req.params.id });
 
   if (!doctor) return next(new AppError("doctor not found", 404));
 
@@ -331,7 +331,6 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
       .filter((appt) => formatDate(new Date(appt.date)) === dateString)
       .map((appt) => appt.slotTime);
 
-
     const slots = allSlots.map((slot) => ({
       time: slot,
       status: bookedSlotsForThisDay.includes(slot) ? "محجوز" : "متاح",
@@ -348,7 +347,7 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
     data: { slots: result },
   });
 });
-// response 
+// response
 // {
 //   "status": "success",
 //   "data": {
