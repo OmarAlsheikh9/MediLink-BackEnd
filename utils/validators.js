@@ -350,20 +350,11 @@ export const ClinicInformationsSchema = z.object({
     .min(2, "clinic name must be at least 2 characters")
     .max(100, "clinic name must be at most 100 characters")
     .trim(),
-  address: z.object({
-    country: z
-      .string({ required_error: "country is required" })
-      .min(2, "country must be at least 2 characters")
-      .trim(),
-    governorate: z
-      .string({ required_error: "governorate is required" })
-      .min(2, "governorate must be at least 2 characters")
-      .trim(),
-    city: z
+  address: z
       .string({ required_error: "city is required" })
       .min(2, "city must be at least 2 characters")
       .trim(),
-  }),
+  
   description: z
     .string({ required_error: "description is required" })
     .min(10, "description must be at least 10 characters")
