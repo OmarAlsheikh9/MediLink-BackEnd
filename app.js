@@ -20,6 +20,7 @@ import appointmentRouter from "./routes/appointmentRoute.js";
 import prescriptionRouter from "./routes/prescriptionRoute.js";
 import medicalReportRouter from "./routes/medicalReportRoute.js";
 import reviewRouter from "./routes/reviewRoute.js";
+// import ratingRouter from "./routes/ratingRoutes.js";
 
 export const app = express();
 app.use(helmet());
@@ -56,6 +57,8 @@ app.use("/api/v1/appointments", appointmentRouter);
 app.use("/api/v1/prescriptions", prescriptionRouter);
 app.use("/api/v1/medicalReports", medicalReportRouter);
 app.use("/api/v1/reviews",reviewRouter);
+
+// app.use("/api/v1/ratings", ratingRouter);
 /////handel invalid routes and must be after all midlleware
 
 app.use((req, res, next) => {
