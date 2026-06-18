@@ -35,7 +35,7 @@ userRouter.post("/forgetPassword", forgetpassword);
 userRouter.post("/verifyPasswordOTP", verifyForgetPassword);
 userRouter.patch("/resetPassword", resetPassword);
 
-/////////////////////////////////
+//////////////////////////////////
 userRouter.use(authenticate);
 userRouter.get("/me", getMyProfile);
 userRouter.patch(

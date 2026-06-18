@@ -6,7 +6,7 @@ export const egyptianPhone = z
   })
   .trim() // Removes accidental whitespace
   .regex(
-    /^(\+20|20|0)?1[0-9]{8}$/,
+    /^(?:\+20|0)?1[0125][0-9]{8}$/,
     "please provide a valid egyptian phone number",
   );
 
