@@ -57,7 +57,6 @@ const userSchema = new Mongoose.Schema({
   active: {
     type: Boolean,
     default: true,
-    select: false,
   },
 });
 userSchema.virtual("isPreHashed").set(function (val) {

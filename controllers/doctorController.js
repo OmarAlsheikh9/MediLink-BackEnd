@@ -217,22 +217,74 @@ export const getDoctor = catchAsync(async (req, res, next) => {
     data: { doctor },
   });
 });
-
 export const updateDoctor = catchAsync(async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return next(new AppError("Invalid doctor ID", 400));
+  }
+
   delete req.body.user;
 
-  const updatedDoctor = await DoctorProfile.findOneAndUpdate(
-    { user: req.params.id },
-    req.body,
-    { new: true, runValidators: true },
-  );
+  // Separate User fields from DoctorProfile fields
+  const { firstName, lastName, gender, birthDate, photo, ...profileUpdates } =
+    req.body;
+  const userUpdates = {};
+  if (firstName) userUpdates.firstName = firstName;
+  if (lastName) userUpdates.lastName = lastName;
+  if (gender) userUpdates.gender = gender;
+  if (birthDate) userUpdates.birthDate = birthDate;
+  if (photo) userUpdates.photo = photo;
 
-  if (!updatedDoctor) return next(new AppError("Doctor not found", 404));
+  // Protect calculated fields
+  delete profileUpdates.ratingsAverage;
+  delete profileUpdates.ratingsCount;
+  delete profileUpdates.averageRating;
+  delete profileUpdates.totalRatings;
 
-  res.status(200).json({
-    status: "success",
-    data: { doctor: updatedDoctor },
-  });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Update DoctorProfile
+    const updatedDoctor = await DoctorProfile.findOneAndUpdate(
+      { user: req.params.id },
+      profileUpdates,
+      { new: true, runValidators: true, session },
+    );
+    if (!updatedDoctor) {
+      await session.abortTransaction();
+      session.endSession();
+      return next(new AppError("Doctor not found", 404));
+    }
+
+    // 2. Update User fields if any were provided
+    if (Object.keys(userUpdates).length > 0) {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        userUpdates,
+        { new: true, runValidators: true, session },
+      );
+      if (!updatedUser) {
+        await session.abortTransaction();
+        session.endSession();
+        return next(new AppError("User not found", 404));
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // 3. Re-fetch with pre(/^find/) population applied
+    const populated = await DoctorProfile.findOne({ user: req.params.id });
+
+    res.status(200).json({
+      status: "success",
+      data: { doctor: populated },
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    return next(new AppError("Update failed, transaction rolled back", 500));
+  }
 });
 
 export const deleteDoctor = catchAsync(async (req, res, next) => {
