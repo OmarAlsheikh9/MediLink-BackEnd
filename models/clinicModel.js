@@ -10,21 +10,9 @@ const clinicSchema = new mongoose.Schema(
       maxlength: [100, "clinic name must be at most 100 characters"],
     },
     address: {
-      country: {
-        type: String,
-        required: [true, "country is required"],
-        trim: true,
-      },
-      city: {
-        type: String,
-        required: [true, "city is required"],
-        trim: true,
-      },
-      governorate: {
-        type: String,
-        required: [true, "governorate is required"],
-        trim: true,
-      },
+      type: String,
+      required: [true, "address is required"],
+      trim: true,
     },
     description: {
       type: String,
@@ -84,7 +72,7 @@ const clinicSchema = new mongoose.Schema(
               "الثلاثاء",
               "الاربعاء",
               "الخميس",
-              "الجمعة"
+              "الجمعة",
             ],
             required: true,
           },
@@ -93,7 +81,7 @@ const clinicSchema = new mongoose.Schema(
             default: false,
           },
           startTime: {
-            type: String, 
+            type: String,
             default: null,
           },
           endTime: {
