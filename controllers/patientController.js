@@ -4,24 +4,42 @@ import AppError from "../utils/appError.js";
 import User from "../models/userModel.js";
 import PatientProfile from "../models/patientProfileModel.js";
 import { APIFeatures } from "../utils/apiFeatures.js";
+import imagekit from "../config/imagekit.js";
+import { processImage } from "../utils/imageService.js";
 
 export const completeMyProfile = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
-  const updatedData = req.body;
 
-  // Ensure the user is a patient
-  const user = await PatientProfile.findOne({ user: userId });
-  if (!user) {
-    return next(new AppError("User not found or not a patient", 404));
+  const profile = await PatientProfile.findOne({ user: userId });
+  if (!profile) return next(new AppError("patient profile not found", 404));
+
+  // allowed fields from body
+  const {
+    bloodType,
+    tall,
+    weight,
+    chronicMedications,
+    allergies,
+    chronicConditions,
+  } = req.body;
+
+  if (bloodType) profile.bloodType = bloodType;
+  if (tall) profile.tall = tall;
+  if (weight) profile.weight = weight;
+  if (chronicMedications) profile.chronicMedications = chronicMedications;
+  if (allergies) profile.allergies = allergies;
+  if (chronicConditions) profile.chronicConditions = chronicConditions;
+
+  // if files were uploaded — append them to existing medicalFiles
+  if (req.uploadedFiles && req.uploadedFiles.length > 0) {
+    profile.medicalFiles.push(...req.uploadedFiles);
   }
 
-  // Update the user's profile
-  Object.assign(user, updatedData);
-  await user.save();
+  await profile.save();
 
   res.status(200).json({
     status: "success",
-    data: { user },
+    data: { profile },
   });
 });
 

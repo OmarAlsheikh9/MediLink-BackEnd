@@ -9,12 +9,15 @@ import {
   changeActiveStatus,
   deleteManyPatients,
 } from "../controllers/patientController.js";
-
+import { uploadMedicalFilesMiddleware } from "../middlewares/multer.js";
+import { uploadMultipleToImageKit } from "../utils/imageKit.js";
 const router = express.Router();
 router.patch(
   "/complete-profile",
   authenticate,
   restrictTo("patient"),
+  uploadMedicalFilesMiddleware,
+  uploadMultipleToImageKit("medical-files"),
   completeMyProfile,
 );
 router.get("/:id", authenticate, restrictTo("admin doctor"), getPatientById);

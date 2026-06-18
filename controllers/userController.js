@@ -4,10 +4,33 @@ import DoctorProfile from "../models/doctorProfileModel.js";
 import Receptionist from "../models/receptionistModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import ImageKit from "imagekit";
+import sharp from "sharp";
 export const getOneUser = getOne(User);
 export const getAllUsers = getAll(User);
 
-/////////////////////////////////
+import imagekit from "../config/imagekit.js";
+import { processImage } from "../utils/imageService.js";
+
+export const uploadSingleToImageKit = (folder) =>
+  catchAsync(async (req, res, next) => {
+    if (!req.file) return next();
+
+    const fileName = `${folder}-${Date.now()}.jpeg`;
+
+    const buffer = await processImage(req.file.buffer);
+
+    const uploaded = await imagekit.upload({
+      file: buffer.toString("base64"),
+      fileName,
+      folder: `/${folder}`,
+    });
+
+    req.file.url = uploaded.url;
+
+    next();
+  });
+
 export const deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id).select("+active");
   if (!user) {
@@ -67,13 +90,23 @@ export const updateMe = catchAsync(async (req, res, next) => {
         400,
       ),
     );
-  const updateObj = filterObj(req.body, "firstName", "lastName", "photo");
+
+  // 1. خذ البيانات العادية
+  const updateObj = filterObj(req.body, "firstName", "lastName");
+
+  // 2. ضيف الصورة لو موجودة
+  if (req.file?.url) {
+    updateObj.photo = req.file.url;
+  }
+
+  // 3. update user
   const updateUser = await User.findByIdAndUpdate(req.user.id, updateObj, {
     new: true,
     runValidators: true,
   });
+
   res.status(200).json({
-    status: "succes",
+    status: "success",
     data: updateUser,
   });
 });

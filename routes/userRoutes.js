@@ -22,8 +22,10 @@ import {
   deleteUser,
   getMyProfile,
   updateMe,
+  uploadSingleToImageKit,
 } from "../controllers/userController.js";
-
+import { uploadSingleImage } from "../middlewares/multer.js";
+/////////////////
 import express from "express";
 const userRouter = express.Router();
 userRouter.post("/signup", validate(signUpSchema), signUp);
@@ -36,7 +38,12 @@ userRouter.patch("/resetPassword", resetPassword);
 /////////////////////////////////
 userRouter.use(authenticate);
 userRouter.get("/me", getMyProfile);
-userRouter.patch("/updateMe", updateMe);
+userRouter.patch(
+  "/updateMe",
+  uploadSingleImage("photo"),
+  uploadSingleToImageKit("users"),
+  updateMe,
+);
 userRouter.patch(
   "/updatePassword",
   validate(updatePasswordSchema),

@@ -1,3 +1,4 @@
+// models/patientProfileModel.js
 import mongoose from "mongoose";
 
 const patientProfileSchema = new mongoose.Schema(
@@ -20,8 +21,13 @@ const patientProfileSchema = new mongoose.Schema(
     chronicMedications: [String],
     allergies: [String],
     chronicConditions: [String],
-    MedicalFiles: [String],
-
+    medicalFiles: [
+      {
+        url: { type: String, required: true },
+        fileId: { type: String, required: true }, // for deletion from ImageKit
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
     favoriteDoctors: [
       {
         type: mongoose.Schema.Types.ObjectId,
