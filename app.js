@@ -21,7 +21,7 @@ import prescriptionRouter from "./routes/prescriptionRoute.js";
 import medicalReportRouter from "./routes/medicalReportRoute.js";
 import reviewRouter from "./routes/reviewRoute.js";
 // import ratingRouter from "./routes/ratingRoutes.js";
-
+//
 export const app = express();
 app.use(helmet());
 app.use(cors());
