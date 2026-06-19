@@ -39,18 +39,18 @@ const seed = async () => {
   // ── 2. SPECIALIZATIONS ────────────────────────────────────────────────────
   const [cardiology, dermatology, pediatrics] = await Specialization.insertMany(
     [
-      { name: "Cardiology", consultationFee: 300 },
-      { name: "Dermatology", consultationFee: 200 },
-      { name: "Pediatrics", consultationFee: 150 },
+      { name: "أمراض القلب والأوعية الدموية", consultationFee: 300 },
+      { name: "الأمراض الجلدية والتناسلية", consultationFee: 200 },
+      { name: "طب الأطفال وحديثي الولادة", consultationFee: 150 },
     ],
   );
   console.log("✅ Specializations created");
 
   // ── 3. CLINIC ─────────────────────────────────────────────────────────────
   await Clinic.create({
-    name: "Medilink Clinic",
-    address: "Cairo, Egypt",
-    description: "A modern clinic providing high quality healthcare services.",
+    name: "عيادة ميدي لينك الطبية",
+    address: "القاهرة، مصر",
+    description: "مركز طبي متطور يقدم أفضل خدمات الرعاية الصحية بجودة عالية.",
     phone: "01012345678",
     email: "medilink@clinic.com",
     schedule: {
@@ -59,24 +59,9 @@ const seed = async () => {
       workingDays: [
         { day: "السبت", isActive: true, startTime: "09:00", endTime: "17:00" },
         { day: "الاحد", isActive: true, startTime: "09:00", endTime: "17:00" },
-        {
-          day: "الاثنين",
-          isActive: true,
-          startTime: "09:00",
-          endTime: "17:00",
-        },
-        {
-          day: "الثلاثاء",
-          isActive: true,
-          startTime: "09:00",
-          endTime: "17:00",
-        },
-        {
-          day: "الاربعاء",
-          isActive: true,
-          startTime: "09:00",
-          endTime: "17:00",
-        },
+        { day: "الاثنين", isActive: true, startTime: "09:00", endTime: "17:00" },
+        { day: "الثلاثاء", isActive: true, startTime: "09:00", endTime: "17:00" },
+        { day: "الاربعاء", isActive: true, startTime: "09:00", endTime: "17:00" },
         { day: "الخميس", isActive: false, startTime: null, endTime: null },
         { day: "الجمعة", isActive: false, startTime: null, endTime: null },
       ],
@@ -86,8 +71,8 @@ const seed = async () => {
 
   // ── 4. ADMIN ──────────────────────────────────────────────────────────────
   const admin = await User.create({
-    firstName: "Super",
-    lastName: "Admin",
+    firstName: "المدير",
+    lastName: "العام",
     gender: "male",
     birthDate: new Date("1985-01-01"),
     phone: "01000000000",
@@ -100,8 +85,8 @@ const seed = async () => {
   // ── 5. DOCTORS ────────────────────────────────────────────────────────────
   const doctorUsers = await User.insertMany([
     {
-      firstName: "Ahmed",
-      lastName: "Hassan",
+      firstName: "أحمد",
+      lastName: "حسن",
       gender: "male",
       birthDate: new Date("1980-05-15"),
       phone: "01011111111",
@@ -110,8 +95,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Sara",
-      lastName: "Mohamed",
+      firstName: "سارة",
+      lastName: "محمد",
       gender: "female",
       birthDate: new Date("1985-08-20"),
       phone: "01022222222",
@@ -120,8 +105,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Khaled",
-      lastName: "Ali",
+      firstName: "خالد",
+      lastName: "علي",
       gender: "male",
       birthDate: new Date("1978-03-10"),
       phone: "01033333333",
@@ -164,8 +149,8 @@ const seed = async () => {
   // ── 6. RECEPTIONISTS ──────────────────────────────────────────────────────
   const receptionistUsers = await User.insertMany([
     {
-      firstName: "Nour",
-      lastName: "Tarek",
+      firstName: "نور",
+      lastName: "طارق",
       gender: "female",
       birthDate: new Date("1995-07-12"),
       phone: "01044444444",
@@ -174,8 +159,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Omar",
-      lastName: "Youssef",
+      firstName: "عمر",
+      lastName: "يوسف",
       gender: "male",
       birthDate: new Date("1993-11-25"),
       phone: "01055555555",
@@ -190,16 +175,16 @@ const seed = async () => {
   await Receptionist.insertMany([
     {
       user: rec1._id,
-      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
-      education: "Bachelor of Business Administration",
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
+      education: "بكالوريوس إدارة أعمال",
       status: "active",
       startTime: "08:00",
       endTime: "16:00",
     },
     {
       user: rec2._id,
-      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
-      education: "Diploma in Health Administration",
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
+      education: "دبلوم في الإدارة الصحية",
       status: "active",
       startTime: "12:00",
       endTime: "20:00",
@@ -210,8 +195,8 @@ const seed = async () => {
   // ── 7. PATIENTS ───────────────────────────────────────────────────────────
   const patientUsers = await User.insertMany([
     {
-      firstName: "Mohamed",
-      lastName: "Hussein",
+      firstName: "محمد",
+      lastName: "حسين",
       gender: "male",
       birthDate: new Date("1990-02-14"),
       phone: "01066666666",
@@ -220,8 +205,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Marwa",
-      lastName: "Khaled",
+      firstName: "مروة",
+      lastName: "خالد",
       gender: "female",
       birthDate: new Date("1992-06-30"),
       phone: "01077777777",
@@ -230,8 +215,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Nour",
-      lastName: "Bassem",
+      firstName: "نور",
+      lastName: "باسم",
       gender: "female",
       birthDate: new Date("1998-09-05"),
       phone: "01088888888",
@@ -240,8 +225,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Ali",
-      lastName: "Youssef",
+      firstName: "علي",
+      lastName: "يوسف",
       gender: "male",
       birthDate: new Date("1985-12-20"),
       phone: "01099999999",
@@ -250,8 +235,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "Salwa",
-      lastName: "Hamdy",
+      firstName: "سلوى",
+      lastName: "حمدي",
       gender: "female",
       birthDate: new Date("2000-04-18"),
       phone: "01111111111",
@@ -267,8 +252,8 @@ const seed = async () => {
     {
       user: patient1._id,
       bloodType: "A+",
-      allergies: ["Penicillin"],
-      chronicConditions: ["Hypertension"],
+      allergies: ["البنسلين"],
+      chronicConditions: ["ارتفاع ضغط الدم"],
     },
     {
       user: patient2._id,
@@ -279,14 +264,14 @@ const seed = async () => {
     {
       user: patient3._id,
       bloodType: "O+",
-      allergies: ["Aspirin"],
-      chronicConditions: ["Diabetes"],
+      allergies: ["الأسبرين"],
+      chronicConditions: ["مرض السكري"],
     },
     {
       user: patient4._id,
       bloodType: "AB+",
       allergies: [],
-      chronicConditions: ["Asthma"],
+      chronicConditions: ["الربو التنفّسي"],
     },
     {
       user: patient5._id,
@@ -298,7 +283,6 @@ const seed = async () => {
   console.log("✅ Patients + profiles created");
 
   // ── 8. APPOINTMENTS ───────────────────────────────────────────────────────
-  // completed appointments (needed for prescriptions and medical reports)
   const [apt1, apt2, apt3, apt4] = await Appointment.insertMany([
     {
       patient: patient1._id,
@@ -307,7 +291,7 @@ const seed = async () => {
       slotTime: "09:00",
       status: "مكتمل",
       fees: 300,
-      notes: "Regular checkup",
+      notes: "فحص دوري عادي",
     },
     {
       patient: patient2._id,
@@ -316,7 +300,7 @@ const seed = async () => {
       slotTime: "09:25",
       status: "مكتمل",
       fees: 300,
-      notes: "Follow up",
+      notes: "زيارة متابعة لاستشارة سابقة",
     },
     {
       patient: patient3._id,
@@ -464,21 +448,21 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt2._id,
       diagnosis: "التهاب الحلق الحاد",
-      notes: "يحتاج المريض للراحة التامة وشرب السوائل",
+      notes: "يحتاج المريض للراحة التامة وشرب السوائل الدافئة",
     },
     {
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
-      diagnosis: "حساسية جلدية",
-      notes: "تجنب التعرض للمسببات",
+      diagnosis: "حساسية جلدية تفاعلية",
+      notes: "تجنب التعرض للمسببات البيئية المباشرة",
     },
     {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt4._id,
       diagnosis: "حساسية شديدة",
-      notes: "تحسن ملحوظ مقارنة بالزيارة السابقة",
+      notes: "تحسن ملحوظ واستقرار في الحالة مقارنة بالزيارة السابقة",
     },
   ]);
   console.log("✅ Medical reports created");
@@ -490,21 +474,21 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt1._id,
       stars: 4.5,
-      comment: "Great doctor, highly recommended!",
+      comment: "طبيب رائع وممتاز جداً، أنصح بالتعامل معه بشدة!",
     }),
     Review.create({
       patient: patient2._id,
       doctor: doctor1._id,
       appointment: apt2._id,
       stars: 5,
-      comment: "Very professional and caring.",
+      comment: "طبيب مهني للغاية ومتعاون ويهتم بالتفاصيل.",
     }),
     Review.create({
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
       stars: 4,
-      comment: "Good experience overall.",
+      comment: "تجربة جيدة بشكل عام ومعاملة محترمة.",
     }),
   ]);
   console.log("✅ Reviews created");
@@ -520,9 +504,7 @@ const seed = async () => {
   console.log("👨‍⚕️ Doctor3  → phone: 01033333333  (Pediatrics)");
   console.log("🗂️  Recep1   → phone: 01044444444");
   console.log("🗂️  Recep2   → phone: 01055555555");
-  console.log(
-    "🧑‍🤝‍🧑 Patient1 → phone: 01066666666  (has 2 completed appointments)",
-  );
+  console.log("🧑‍🤝‍🧑 Patient1 → phone: 01066666666  (has 2 completed appointments)");
   console.log("🧑‍🤝‍🧑 Patient2 → phone: 01077777777");
   console.log("🧑‍🤝‍🧑 Patient3 → phone: 01088888888");
   console.log("🧑‍🤝‍🧑 Patient4 → phone: 01099999999");

@@ -117,6 +117,8 @@ export const login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ phone }).select("+password");
   if (!user || !(await user.correctPassword(password)))
     return next(new AppError("invalid phone or password", 401));
+  if(!user.active)
+    return next(new AppError("User not active"));
   createSendToken(user, 200, res);
 });
 //* //////////////////////////Move restrictTo is middleware not controller ////
