@@ -179,7 +179,10 @@ export const specializationSchema = z.object({
     .trim()
     .regex(
       /^[a-zA-Z\s\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+$/,
-      { message: "Specialization name must contain only Arabic or English letters and spaces" }
+      {
+        message:
+          "Specialization name must contain only Arabic or English letters and spaces",
+      },
     ),
   consultationFee: z
     .number({
@@ -279,7 +282,10 @@ export const createDoctorSchema = z
       .trim()
       .regex(
         /^[a-zA-Z\s\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+$/,
-        { message: "Specialization name must contain only Arabic or English letters and spaces" }
+        {
+          message:
+            "Specialization name must contain only Arabic or English letters and spaces",
+        },
       ),
     experienceYears: z
       .number({
@@ -294,13 +300,13 @@ export const createDoctorSchema = z
       .array(
         z.enum(
           [
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
+            "السبت",
+            "الاحد",
+            "الاثنين",
+            "الثلاثاء",
+            "الاربعاء",
+            "الخميس",
+            "الجمعة",
           ],
           {
             invalid_type_error: "each working day must be a valid day name",
@@ -361,13 +367,13 @@ export const updateDoctorSchema = z
     workingDays: z
       .array(
         z.enum([
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
+          "السبت",
+          "الاحد",
+          "الاثنين",
+          "الثلاثاء",
+          "الاربعاء",
+          "الخميس",
+          "الجمعة",
         ]),
       )
       .min(1)
@@ -419,13 +425,7 @@ export const ClinicInformationsSchema = z.object({
 const workingDaySchema = z
   .object({
     day: z.enum(
-      [ "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday"],
+      ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء", "الخميس", "الجمعة"],
       { required_error: "day is required" },
     ),
 
@@ -457,36 +457,57 @@ const workingDaySchema = z
         "active day must have valid start and end times, and end must be after start",
     },
   );
-
 export const updateScheduleSchema = z.object({
   appointmentDuration: z
-    .number({ invalid_type_error: "appointment duration must be a number" })
-    .int()
+    .number({
+      required_error: "appointment duration is required",
+      invalid_type_error: "duration must be a number",
+    })
     .min(5, "duration must be at least 5 minutes")
     .max(180, "duration must be at most 180 minutes")
-    .optional(),
-
-  maxAppointmentsPerDay: z
-    .number({ invalid_type_error: "max appointments must be a number" })
-    .int()
-    .min(1)
-    .max(100)
-    .optional(),
+    .default(25),
 
   workingDays: z
-    .array(workingDaySchema)
-    .length(7, "must provide all 7 days") // UI always sends all 7 rows
-    .refine(
-      (days) => {
-        const names = days.map((d) => d.day);
-        return new Set(names).size === 7; // no duplicate days
-      },
-      { message: "each day must appear exactly once" },
+    .array(
+      z.object({
+        day: z.enum(
+          [
+            "السبت",
+            "الاحد",
+            "الاثنين",
+            "الثلاثاء",
+            "الاربعاء",
+            "الخميس",
+            "الجمعة",
+          ],
+          {
+            required_error: "day is required",
+            invalid_type_error: "invalid day selection",
+          }
+        ),
+        isActive: z
+          .boolean({
+            invalid_type_error: "isActive must be a boolean",
+          })
+          .default(false),
+        startTime: z
+          .string({
+            invalid_type_error: "startTime must be a string",
+          })
+          .nullable()
+          .default(null),
+        endTime: z
+          .string({
+            invalid_type_error: "endTime must be a string",
+          })
+          .nullable()
+          .default(null),
+      })
     )
-    .optional(),
+    .default([]),
 });
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export const createreceptionistSchema = z
@@ -573,13 +594,13 @@ export const createreceptionistSchema = z
       .array(
         z.enum(
           [
-             "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
+            "السبت",
+            "الاحد",
+            "الاثنين",
+            "الثلاثاء",
+            "الاربعاء",
+            "الخميس",
+            "الجمعة",
           ],
           {
             invalid_type_error: "each working day must be a valid day name",

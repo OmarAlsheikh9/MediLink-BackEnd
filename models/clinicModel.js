@@ -54,25 +54,18 @@ const clinicSchema = new mongoose.Schema(
         max: [180, "duration must be at most 180 minutes"],
         default: 25,
       },
-      maxAppointmentsPerDay: {
-        type: Number,
-        required: [true, "max appointments is required"],
-        min: [1, "must allow at least 1 appointment"],
-        max: [100, "max appointments seems too high"],
-        default: 8,
-      },
       workingDays: [
         {
           day: {
             type: String,
             enum: [
-              "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
+            "السبت",
+            "الاحد",
+            "الاثنين",
+            "الثلاثاء",
+            "الاربعاء",
+            "الخميس",
+            "الجمعة",
             ],
             required: true,
           },

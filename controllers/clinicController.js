@@ -55,11 +55,3 @@ export const updateClinicSchedule = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getClinicSchedule = catchAsync(async (req, res, next) => {
-  const clinic = await Clinic.findOne();
-  if (!clinic) return next(new AppError("Clinic not found", 404));
-  res.status(200).json({
-    status: "success",
-    data: { schedule: clinic.schedule },
-  });
-});
