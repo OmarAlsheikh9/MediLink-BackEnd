@@ -188,6 +188,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
         "user.gender": 1,
         "user.birthDate": 1,
         "user._id": 1,
+        "user.active": 1,
       },
     },
     { $sort: { _id: 1 } },
