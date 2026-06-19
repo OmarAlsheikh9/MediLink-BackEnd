@@ -57,13 +57,28 @@ const seed = async () => {
       appointmentDuration: 25,
       maxAppointmentsPerDay: 10,
       workingDays: [
-        { day: "Saturday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Sunday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Monday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Tuesday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Wednesday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Thursday", isActive: false, startTime: null, endTime: null },
-        { day: "Friday", isActive: false, startTime: null, endTime: null },
+        { day: "السبت", isActive: true, startTime: "09:00", endTime: "17:00" },
+        { day: "الاحد", isActive: true, startTime: "09:00", endTime: "17:00" },
+        {
+          day: "الاثنين",
+          isActive: true,
+          startTime: "09:00",
+          endTime: "17:00",
+        },
+        {
+          day: "الثلاثاء",
+          isActive: true,
+          startTime: "09:00",
+          endTime: "17:00",
+        },
+        {
+          day: "الاربعاء",
+          isActive: true,
+          startTime: "09:00",
+          endTime: "17:00",
+        },
+        { day: "الخميس", isActive: false, startTime: null, endTime: null },
+        { day: "الجمعة", isActive: false, startTime: null, endTime: null },
       ],
     },
   });
@@ -123,7 +138,7 @@ const seed = async () => {
       user: doctor1._id,
       specialization: cardiology._id,
       experienceYears: 10,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
       startTime: "09:00",
       endTime: "17:00",
     },
@@ -131,7 +146,7 @@ const seed = async () => {
       user: doctor2._id,
       specialization: dermatology._id,
       experienceYears: 7,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
       startTime: "10:00",
       endTime: "18:00",
     },
@@ -139,7 +154,7 @@ const seed = async () => {
       user: doctor3._id,
       specialization: pediatrics._id,
       experienceYears: 15,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
       startTime: "08:00",
       endTime: "16:00",
     },
@@ -175,16 +190,16 @@ const seed = async () => {
   await Receptionist.insertMany([
     {
       user: rec1._id,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
-      education: "Bachelor of Business Administration",
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
+      education: "بكالوريوس إدارة أعمال",
       status: "active",
       startTime: "08:00",
       endTime: "16:00",
     },
     {
       user: rec2._id,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
-      education: "Diploma in Health Administration",
+      workingDays: ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء"],
+      education: "دبلوم إدارة المستشفيات",
       status: "active",
       startTime: "12:00",
       endTime: "20:00",
@@ -289,7 +304,7 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2025-12-10"),
       slotTime: "09:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
       notes: "Regular checkup",
     },
@@ -298,7 +313,7 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2025-12-12"),
       slotTime: "09:25",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
       notes: "Follow up",
     },
@@ -307,7 +322,7 @@ const seed = async () => {
       doctor: doctor2._id,
       date: new Date("2025-12-15"),
       slotTime: "10:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 200,
     },
     {
@@ -315,7 +330,7 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2026-01-05"),
       slotTime: "09:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
     },
   ]);
@@ -327,7 +342,7 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2026-07-01"),
       slotTime: "10:00",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 300,
     },
     {
@@ -335,7 +350,7 @@ const seed = async () => {
       doctor: doctor2._id,
       date: new Date("2026-07-01"),
       slotTime: "10:25",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 200,
     },
     {
@@ -343,16 +358,15 @@ const seed = async () => {
       doctor: doctor3._id,
       date: new Date("2026-07-02"),
       slotTime: "08:00",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 150,
     },
-    // cancelled appointment
     {
       patient: patient3._id,
       doctor: doctor1._id,
       date: new Date("2026-07-03"),
       slotTime: "09:25",
-      status: "cancelled",
+      status: "ملغى",
       cancelledBy: "patient",
       fees: 300,
     },
@@ -368,15 +382,15 @@ const seed = async () => {
       medicines: [
         {
           name: "Vontolin",
-          dose: "1 pill",
-          frequency: "Every 6 hours",
-          duration: "3 days",
+          dose: "1 حبة",
+          frequency: "كل 6 ساعات",
+          duration: "3 أيام",
         },
         {
           name: "Paracetamol",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
+          dose: "1 حبة",
+          frequency: "كل 8 ساعات",
+          duration: "7 أيام",
         },
       ],
     },
@@ -387,15 +401,15 @@ const seed = async () => {
       medicines: [
         {
           name: "Amoxicillin",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
+          dose: "1 حبة",
+          frequency: "كل 8 ساعات",
+          duration: "7 أيام",
         },
         {
           name: "Ibuprofen",
-          dose: "1 pill",
-          frequency: "Every 12 hours",
-          duration: "5 days",
+          dose: "1 حبة",
+          frequency: "كل 12 ساعة",
+          duration: "5 أيام",
         },
       ],
     },
@@ -406,9 +420,9 @@ const seed = async () => {
       medicines: [
         {
           name: "Cetirizine",
-          dose: "1 pill",
-          frequency: "Once daily",
-          duration: "14 days",
+          dose: "1 حبة",
+          frequency: "مرة يومياً",
+          duration: "14 يوم",
         },
       ],
     },
@@ -419,15 +433,15 @@ const seed = async () => {
       medicines: [
         {
           name: "Vontolin",
-          dose: "1 pill",
-          frequency: "Every 6 hours",
-          duration: "3 days",
+          dose: "1 حبة",
+          frequency: "كل 6 ساعات",
+          duration: "3 أيام",
         },
         {
           name: "Paracetamol",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
+          dose: "1 حبة",
+          frequency: "كل 8 ساعات",
+          duration: "7 أيام",
         },
       ],
     },
@@ -440,29 +454,29 @@ const seed = async () => {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt1._id,
-      diagnosis: "Severe Allergy",
-      notes: "Notes: Severe cough and congestion in nose and throat",
+      diagnosis: "حساسية شديدة",
+      notes: "ملاحظات: سعال شديد واحتقان في الأنف والحنجرة",
     },
     {
       patient: patient2._id,
       doctor: doctor1._id,
       appointment: apt2._id,
-      diagnosis: "Acute Sore Throat",
-      notes: "Patient needs complete rest and warm fluids",
+      diagnosis: "التهاب الحلق الحاد",
+      notes: "يحتاج المريض للراحة التامة وشرب السوائل",
     },
     {
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
-      diagnosis: "Contact Dermatitis",
-      notes: "Avoid exposure to environmental triggers",
+      diagnosis: "حساسية جلدية",
+      notes: "تجنب التعرض للمسببات",
     },
     {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt4._id,
-      diagnosis: "Severe Allergy",
-      notes: "Significant improvement compared to the previous visit",
+      diagnosis: "حساسية شديدة",
+      notes: "تحسن ملحوظ مقارنة بالزيارة السابقة",
     },
   ]);
   console.log("✅ Medical reports created");
@@ -474,21 +488,21 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt1._id,
       stars: 4.5,
-      comment: "Great doctor, highly recommended!",
+      comment: "دكتور ممتاز، أنصح به بشدة!",
     }),
     Review.create({
       patient: patient2._id,
       doctor: doctor1._id,
       appointment: apt2._id,
       stars: 5,
-      comment: "Very professional and caring.",
+      comment: "محترف جداً ومهتم بالمريض.",
     }),
     Review.create({
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
       stars: 4,
-      comment: "Good experience overall.",
+      comment: "تجربة جيدة بشكل عام.",
     }),
   ]);
   console.log("✅ Reviews created");
@@ -499,12 +513,14 @@ const seed = async () => {
   console.log("🔐 All passwords: Test@1234");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("👤 Admin   → phone: 01000000000");
-  console.log("👨‍⚕️ Doctor1  → phone: 01011111111  (Cardiology)");
-  console.log("👩‍⚕️ Doctor2  → phone: 01022222222  (Dermatology)");
-  console.log("👨‍⚕️ Doctor3  → phone: 01033333333  (Pediatrics)");
+  console.log("👨‍⚕️ Doctor1  → phone: 01011111111  (أمراض القلب)");
+  console.log("👩‍⚕️ Doctor2  → phone: 01022222222  (الأمراض الجلدية)");
+  console.log("👨‍⚕️ Doctor3  → phone: 01033333333  (طب الأطفال)");
   console.log("🗂️  Recep1   → phone: 01044444444");
   console.log("🗂️  Recep2   → phone: 01055555555");
-  console.log("🧑‍🤝‍🧑 Patient1 → phone: 01066666666  (has 2 completed appointments)");
+  console.log(
+    "🧑‍🤝‍🧑 Patient1 → phone: 01066666666  (has 2 completed appointments)",
+  );
   console.log("🧑‍🤝‍🧑 Patient2 → phone: 01077777777");
   console.log("🧑‍🤝‍🧑 Patient3 → phone: 01088888888");
   console.log("🧑‍🤝‍🧑 Patient4 → phone: 01099999999");
