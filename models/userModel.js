@@ -62,23 +62,14 @@ const userSchema = new Mongoose.Schema({
 userSchema.virtual("isPreHashed").set(function (val) {
   this._isPreHashed = val;
 });
-userSchema.pre("save", async function () {
-  if (!this.isModified("password") || this._isPreHashed) return;
-  this.password = await bcrypt.hash(this.password, 12);
-});
 
 userSchema.pre("save", function () {
   if (!this.isModified("password") || this.isNew) return;
   this.passwordChangedAt = Date.now() - 1000;
 });
-// userSchema.pre(/^find/, function () {
-//   this.where({ role: { $ne: "admin" }, active: { $ne: false } });
-// });
-// >>>>>>> 6c58e57f1f945301e496db042e5744b77cf4c99e
-userSchema.methods.correctPassword = async function (
-  candidatePassword,
-)  {
-  return await bcrypt.compare(candidatePassword, this.password);
+
+userSchema.methods.correctPassword = async function (candidatePassword,password)  {
+  return await bcrypt.compare(candidatePassword, password);
 };
 userSchema.methods.changedPasswordAfter = function (tokenDate) {
   if (this.passwordChangedAt) {
@@ -90,10 +81,6 @@ userSchema.methods.changedPasswordAfter = function (tokenDate) {
   }
   return false;
 };
-
-// userSchema.pre(/^find/, function () {
-//   this.where({ role: { $ne: "admin" } });
-// });
 
 const User = Mongoose.model("User", userSchema);
 export default User;

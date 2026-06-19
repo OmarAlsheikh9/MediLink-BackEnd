@@ -16,16 +16,30 @@ export const getAllSpecializations = catchAsync(async (req, res, next) => {
       },
     },
     {
+      $lookup: {
+        from: "appointments",
+        localField: "doctors.user",
+        foreignField: "doctor",
+        as: "appointments",
+      },
+    },
+    {
       $project: {
         name: 1,
         consultationFee: 1,
-        doctorCount: { $size: "$doctors" },
-        //* add appointmentCount when it ready
+        doctorsCount: { $size: "$doctors" },
+        appointmentsCount: { $size: "$appointments" },
       },
     },
+
+    { $sort: { name: 1 } },
   ]);
 
-  res.status(200).json({ status: "success", data: { specializations } });
+  res.status(200).json({
+    status: "success",
+    length: specializations.length,
+    data: { specializations },
+  });
 });
 
 export const createSpecialization = catchAsync(async (req, res, next) => {
@@ -59,7 +73,7 @@ export const updateSpecialization = catchAsync(async (req, res, next) => {
     { _id: req.params.id },
     { name, consultationFee },
     {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     },
   );
@@ -90,5 +104,98 @@ export const deleteSpecialization = catchAsync(async (req, res, next) => {
     status: "success",
     message: `Specialization deleted. ${modifiedCount} doctor(s) now have no specialization.`,
     data: null,
+  });
+});
+
+export const getDoctorsBySpecialization = catchAsync(async (req, res, next) => {
+  const  specializationId  = req.params.id;
+  const { search, page = 1, limit = 10 } = req.query;
+
+  if (!mongoose.Types.ObjectId.isValid(specializationId))
+    return next(new AppError("invalid specialization id", 400));
+
+  const specializationExists = await Specialization.exists({ _id: specializationId });
+  if (!specializationExists)
+    return next(new AppError("no specialization found with this id", 404));
+
+  const doctors = await DoctorProfile.aggregate([
+    {
+      $match: {
+        specialization: new mongoose.Types.ObjectId(specializationId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        let: { userId: "$user" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$_id", "$$userId"] },
+              role: "doctor",
+            },
+          },
+          {
+            $project: {
+              firstName: 1,
+              lastName: 1,
+              photo: 1,
+            },
+          },
+        ],
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
+    {
+      $lookup: {
+        from: "reviews",
+        localField: "user._id",
+        foreignField: "doctor",
+        as: "reviews",
+      },
+    },
+    ...(search
+      ? [
+          {
+            $match: {
+              $or: [
+                { "user.firstName": { $regex: search, $options: "i" } },
+                { "user.lastName": { $regex: search, $options: "i" } },
+              ],
+            },
+          },
+        ]
+      : []),
+
+    {
+      $project: {
+        _id: 0,
+        doctorProfileId: "$_id",
+        userId: "$user._id",
+        firstName: "$user.firstName",
+        lastName: "$user.lastName",
+        photo: "$user.photo",
+        experienceYears: 1,
+        averageRating: {
+          $cond: {
+            if: { $gt: [{ $size: "$reviews" }, 0] },
+            then: { $round: [{ $avg: "$reviews.stars" }, 1] },
+            else: 0,
+          },
+        },
+        totalReviews: { $size: "$reviews" },
+      },
+    },
+
+    { $sort: { averageRating: -1 } },
+    { $skip: (Number(page) - 1) * Number(limit) },
+    { $limit: Number(limit) },
+  ]);
+
+  res.status(200).json({
+    status: "success",
+    length: doctors.length,
+    data: { doctors },
   });
 });

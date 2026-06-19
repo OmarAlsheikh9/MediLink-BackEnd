@@ -14,14 +14,13 @@ import Prescription from "./models/prescriptionModel.js";
 import MedicalReport from "./models/medicalReportModel.js";
 import Review from "./models/reviewModel.js";
 
-// ─── all users share this password: Test@1234 ───────────────────────────────
 const HASHED_PASSWORD = await bcrypt.hash("Test@1234", 12);
 
 const seed = async () => {
   await mongoose.connect(process.env.LOCAL_DATABASE);
   console.log("✅ DB connected");
 
-  // ── 1. CLEAN everything first ─────────────────────────────────────────────
+  // ── 1. CLEAN ──────────────────────────────────────────────────────────────
   await Promise.all([
     User.deleteMany(),
     DoctorProfile.deleteMany(),
@@ -36,20 +35,18 @@ const seed = async () => {
   ]);
   console.log("🧹 Collections cleared");
 
-  // ── 2. SPECIALIZATIONS ────────────────────────────────────────────────────
-  const [cardiology, dermatology, pediatrics] = await Specialization.insertMany(
-    [
-      { name: "أمراض القلب والأوعية الدموية", consultationFee: 300 },
-      { name: "الأمراض الجلدية والتناسلية", consultationFee: 200 },
-      { name: "طب الأطفال وحديثي الولادة", consultationFee: 150 },
-    ],
-  );
+  // ── 2. SPECIALIZATIONS (Arabic names) ────────────────────────────────────
+  const [cardiology, dermatology, pediatrics] = await Specialization.insertMany([
+    { name: "أمراض القلب والأوعية الدموية", consultationFee: 300 },
+    { name: "الأمراض الجلدية والتناسلية",   consultationFee: 200 },
+    { name: "طب الأطفال وحديثي الولادة",    consultationFee: 150 },
+  ]);
   console.log("✅ Specializations created");
 
   // ── 3. CLINIC ─────────────────────────────────────────────────────────────
   await Clinic.create({
     name: "Medilink Clinic",
-    address: "Cairo, Egypt",
+    address: "Egypt Cairo",
     description: "A modern clinic providing high quality healthcare services.",
     phone: "01012345678",
     email: "medilink@clinic.com",
@@ -57,13 +54,13 @@ const seed = async () => {
       appointmentDuration: 25,
       maxAppointmentsPerDay: 10,
       workingDays: [
-        { day: "Saturday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Sunday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Monday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Tuesday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Wednesday", isActive: true, startTime: "09:00", endTime: "17:00" },
-        { day: "Thursday", isActive: false, startTime: null, endTime: null },
-        { day: "Friday", isActive: false, startTime: null, endTime: null },
+        { day: "saturday",    isActive: true,  startTime: "09:00", endTime: "17:00" },
+        { day: "sunday",    isActive: true,  startTime: "09:00", endTime: "17:00" },
+        { day: "monday",  isActive: true,  startTime: "09:00", endTime: "17:00" },
+        { day: "tuesday", isActive: true,  startTime: "09:00", endTime: "17:00" },
+        { day: "wednesday", isActive: true,  startTime: "09:00", endTime: "17:00" },
+        { day: "thursday",   isActive: false, startTime: null,    endTime: null    },
+        { day: "friday",   isActive: false, startTime: null,    endTime: null    },
       ],
     },
   });
@@ -71,10 +68,10 @@ const seed = async () => {
 
   // ── 4. ADMIN ──────────────────────────────────────────────────────────────
   const admin = await User.create({
-    firstName: "المدير",
-    lastName: "العام",
+    firstName: "توفيق",
+    lastName: "عبدالله",
     gender: "male",
-    birthDate: new Date("1985-01-01"),
+    birthDate: new Date("1980-01-01"),
     phone: "01000000000",
     role: "admin",
     password: HASHED_PASSWORD,
@@ -86,7 +83,7 @@ const seed = async () => {
   const doctorUsers = await User.insertMany([
     {
       firstName: "أحمد",
-      lastName: "حسن",
+      lastName: "الألفي",
       gender: "male",
       birthDate: new Date("1980-05-15"),
       phone: "01011111111",
@@ -95,8 +92,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "سارة",
-      lastName: "محمد",
+      firstName: "أماني",
+      lastName: "العطار",
       gender: "female",
       birthDate: new Date("1985-08-20"),
       phone: "01022222222",
@@ -105,8 +102,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "خالد",
-      lastName: "علي",
+      firstName: "يمان",
+      lastName: "علاء",
       gender: "male",
       birthDate: new Date("1978-03-10"),
       phone: "01033333333",
@@ -123,7 +120,7 @@ const seed = async () => {
       user: doctor1._id,
       specialization: cardiology._id,
       experienceYears: 10,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
       startTime: "09:00",
       endTime: "17:00",
     },
@@ -131,7 +128,7 @@ const seed = async () => {
       user: doctor2._id,
       specialization: dermatology._id,
       experienceYears: 7,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
       startTime: "10:00",
       endTime: "18:00",
     },
@@ -139,7 +136,7 @@ const seed = async () => {
       user: doctor3._id,
       specialization: pediatrics._id,
       experienceYears: 15,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
       startTime: "08:00",
       endTime: "16:00",
     },
@@ -175,7 +172,7 @@ const seed = async () => {
   await Receptionist.insertMany([
     {
       user: rec1._id,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
       education: "Bachelor of Business Administration",
       status: "active",
       startTime: "08:00",
@@ -183,7 +180,7 @@ const seed = async () => {
     },
     {
       user: rec2._id,
-      workingDays: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      workingDays: ["saturday", "sunday", "monday", "tuesday", "wednesday"],
       education: "Diploma in Health Administration",
       status: "active",
       startTime: "12:00",
@@ -283,13 +280,14 @@ const seed = async () => {
   console.log("✅ Patients + profiles created");
 
   // ── 8. APPOINTMENTS ───────────────────────────────────────────────────────
+  // ✅ status values match your model enum exactly
   const [apt1, apt2, apt3, apt4] = await Appointment.insertMany([
     {
       patient: patient1._id,
       doctor: doctor1._id,
       date: new Date("2025-12-10"),
       slotTime: "09:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
       notes: "Regular checkup",
     },
@@ -298,7 +296,7 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2025-12-12"),
       slotTime: "09:25",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
       notes: "Follow up",
     },
@@ -307,7 +305,7 @@ const seed = async () => {
       doctor: doctor2._id,
       date: new Date("2025-12-15"),
       slotTime: "10:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 200,
     },
     {
@@ -315,44 +313,42 @@ const seed = async () => {
       doctor: doctor1._id,
       date: new Date("2026-01-05"),
       slotTime: "09:00",
-      status: "completed",
+      status: "مكتمل",
       fees: 300,
     },
   ]);
 
-  // pending appointments (upcoming)
   await Appointment.insertMany([
     {
       patient: patient4._id,
       doctor: doctor1._id,
-      date: new Date("2026-07-01"),
+      date: new Date("2026-07-20"),
       slotTime: "10:00",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 300,
     },
     {
       patient: patient5._id,
       doctor: doctor2._id,
-      date: new Date("2026-07-01"),
+      date: new Date("2026-07-20"),
       slotTime: "10:25",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 200,
     },
     {
       patient: patient2._id,
       doctor: doctor3._id,
-      date: new Date("2026-07-02"),
+      date: new Date("2026-07-21"),
       slotTime: "08:00",
-      status: "pending",
+      status: "قيد الانتظار",
       fees: 150,
     },
-    // cancelled appointment
     {
       patient: patient3._id,
       doctor: doctor1._id,
-      date: new Date("2026-07-03"),
+      date: new Date("2026-07-22"),
       slotTime: "09:25",
-      status: "cancelled",
+      status: "ملغى",
       cancelledBy: "patient",
       fees: 300,
     },
@@ -366,18 +362,8 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt1._id,
       medicines: [
-        {
-          name: "Vontolin",
-          dose: "1 pill",
-          frequency: "Every 6 hours",
-          duration: "3 days",
-        },
-        {
-          name: "Paracetamol",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
-        },
+        { name: "Ventolin",     dose: "1 حبة", frequency: "كل 6 ساعات",  duration: "3 أيام"  },
+        { name: "Paracetamol",  dose: "1 حبة", frequency: "كل 8 ساعات",  duration: "7 أيام"  },
       ],
     },
     {
@@ -385,18 +371,8 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt2._id,
       medicines: [
-        {
-          name: "Amoxicillin",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
-        },
-        {
-          name: "Ibuprofen",
-          dose: "1 pill",
-          frequency: "Every 12 hours",
-          duration: "5 days",
-        },
+        { name: "Amoxicillin",  dose: "1 حبة", frequency: "كل 8 ساعات",  duration: "7 أيام"  },
+        { name: "Ibuprofen",    dose: "1 حبة", frequency: "كل 12 ساعة",  duration: "5 أيام"  },
       ],
     },
     {
@@ -404,12 +380,7 @@ const seed = async () => {
       doctor: doctor2._id,
       appointment: apt3._id,
       medicines: [
-        {
-          name: "Cetirizine",
-          dose: "1 pill",
-          frequency: "Once daily",
-          duration: "14 days",
-        },
+        { name: "Cetirizine",   dose: "1 حبة", frequency: "مرة يومياً",  duration: "14 يوم"  },
       ],
     },
     {
@@ -417,18 +388,8 @@ const seed = async () => {
       doctor: doctor1._id,
       appointment: apt4._id,
       medicines: [
-        {
-          name: "Vontolin",
-          dose: "1 pill",
-          frequency: "Every 6 hours",
-          duration: "3 days",
-        },
-        {
-          name: "Paracetamol",
-          dose: "1 pill",
-          frequency: "Every 8 hours",
-          duration: "7 days",
-        },
+        { name: "Ventolin",     dose: "1 حبة", frequency: "كل 6 ساعات",  duration: "3 أيام"  },
+        { name: "Paracetamol",  dose: "1 حبة", frequency: "كل 8 ساعات",  duration: "7 أيام"  },
       ],
     },
   ]);
@@ -440,76 +401,76 @@ const seed = async () => {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt1._id,
-      diagnosis: "Severe Allergy",
-      notes: "Notes: Severe cough and congestion in nose and throat",
+      diagnosis: "حساسية شديدة",
+      notes: "سعال شديد واحتقان في الأنف والحنجرة",
     },
     {
       patient: patient2._id,
       doctor: doctor1._id,
       appointment: apt2._id,
-      diagnosis: "Acute Sore Throat",
-      notes: "Patient needs complete rest and warm fluids",
+      diagnosis: "التهاب الحلق الحاد",
+      notes: "يحتاج المريض للراحة التامة وشرب السوائل الدافئة",
     },
     {
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
-      diagnosis: "Contact Dermatitis",
-      notes: "Avoid exposure to environmental triggers",
+      diagnosis: "حساسية جلدية",
+      notes: "تجنب التعرض للمسببات البيئية",
     },
     {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt4._id,
-      diagnosis: "Severe Allergy",
-      notes: "Significant improvement compared to the previous visit",
+      diagnosis: "حساسية شديدة",
+      notes: "تحسن ملحوظ مقارنة بالزيارة السابقة",
     },
   ]);
   console.log("✅ Medical reports created");
 
   // ── 11. REVIEWS ───────────────────────────────────────────────────────────
-  await Promise.all([
-    Review.create({
+  await Review.insertMany([
+    {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt1._id,
-      stars: 4.5,
-      comment: "Great doctor, highly recommended!",
-    }),
-    Review.create({
+      stars: 5,
+      comment: "دكتور ممتاز ومتعاون جداً، أنصح به بشدة",
+    },
+    {
       patient: patient2._id,
       doctor: doctor1._id,
       appointment: apt2._id,
-      stars: 5,
-      comment: "Very professional and caring.",
-    }),
-    Review.create({
+      stars: 4,
+      comment: "تجربة جيدة جداً، الدكتور محترف ودقيق في التشخيص",
+    },
+    {
       patient: patient3._id,
       doctor: doctor2._id,
       appointment: apt3._id,
-      stars: 4,
-      comment: "Good experience overall.",
-    }),
+      stars: 5,
+      comment: "الدكتورة متميزة ومهتمة بالمريض بشكل كبير",
+    },
   ]);
   console.log("✅ Reviews created");
 
   // ── SUMMARY ───────────────────────────────────────────────────────────────
   console.log("\n🎉 Database seeded successfully!\n");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("🔐 All passwords: Test@1234");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("👤 Admin   → phone: 01000000000");
-  console.log("👨‍⚕️ Doctor1  → phone: 01011111111  (Cardiology)");
-  console.log("👩‍⚕️ Doctor2  → phone: 01022222222  (Dermatology)");
-  console.log("👨‍⚕️ Doctor3  → phone: 01033333333  (Pediatrics)");
-  console.log("🗂️  Recep1   → phone: 01044444444");
-  console.log("🗂️  Recep2   → phone: 01055555555");
-  console.log("🧑‍🤝‍🧑 Patient1 → phone: 01066666666  (has 2 completed appointments)");
-  console.log("🧑‍🤝‍🧑 Patient2 → phone: 01077777777");
-  console.log("🧑‍🤝‍🧑 Patient3 → phone: 01088888888");
-  console.log("🧑‍🤝‍🧑 Patient4 → phone: 01099999999");
-  console.log("🧑‍🤝‍🧑 Patient5 → phone: 01111111111");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("🔐 All passwords → Test@1234");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("👤 Admin       → 01000000000  (توفيق عبدالله)");
+  console.log("👨‍⚕️ Doctor 1    → 01011111111  (أحمد الألفي    - قلب)");
+  console.log("👩‍⚕️ Doctor 2    → 01022222222  (أماني العطار   - جلدية)");
+  console.log("👨‍⚕️ Doctor 3    → 01033333333  (يمان علاء      - أطفال)");
+  console.log("🗂️  Recep 1     → 01044444444  (نور طارق)");
+  console.log("🗂️  Recep 2     → 01055555555  (عمر يوسف)");
+  console.log("🧑‍🤝‍🧑 Patient 1  → 01066666666  (محمد حسين  - له زيارتان مكتملتان)");
+  console.log("🧑‍🤝‍🧑 Patient 2  → 01077777777  (مروة خالد)");
+  console.log("🧑‍🤝‍🧑 Patient 3  → 01088888888  (نور باسم)");
+  console.log("🧑‍🤝‍🧑 Patient 4  → 01099999999  (علي يوسف)");
+  console.log("🧑‍🤝‍🧑 Patient 5  → 01111111111  (سلوى حمدي)");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
   process.exit(0);
 };
