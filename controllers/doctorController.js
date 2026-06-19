@@ -74,6 +74,17 @@ export const createDoctor = catchAsync(async (req, res, next) => {
     endTime,
   } = req.body;
 
+  if (
+    new Date().getFullYear() - new Date(birthDate).getFullYear() - 27 <=
+    +experienceYears
+  )
+    return next(
+      new AppError(
+        "experience years should be less than your age minus 27 years",
+        400,
+      ),
+    );
+
   if (password !== confirmPassword)
     return next(new AppError("passwords do not match", 400));
 

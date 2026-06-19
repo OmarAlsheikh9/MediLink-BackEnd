@@ -75,22 +75,29 @@ export const createReceptionist = catchAsync(async (req, res, next) => {
   }
 });
 export const getAllReceptionist = catchAsync(async (req, res, next) => {
-  const receptionists = await Receptionist.find().lean();
+  const receptionists = await Receptionist.find();
 
-  flattenAndRespond(res, { key: "receptionists", data: receptionists });
+  res.status(200).json({
+    status: "success",
+    length: receptionists.length,
+    data: { receptionists },
+  });
 });
 export const getReceptionist = catchAsync(async (req, res, next) => {
-  const receptionist = await Receptionist.findById(req.params.id).lean();
+  const receptionist = await Receptionist.findOne({ user: req.params.id });
 
   if (!receptionist) return next(new AppError("receptionist not found", 404));
 
-  flattenAndRespond(res, { key: "receptionist", data: receptionist });
+  res.status(200).json({
+    status: "success",
+    data: { receptionist },
+  });
 });
 export const updateReceptionist = catchAsync(async (req, res, next) => {
   delete req.body.user;
 
-  const updatedReceptionist = await Receptionist.findByIdAndUpdate(
-    req.params.id,
+  const updatedReceptionist = await Receptionist.findOneAndUpdate(
+    { user: req.params.id },
     req.body,
     {
       new: true,
