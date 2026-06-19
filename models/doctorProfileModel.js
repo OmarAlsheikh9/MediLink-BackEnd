@@ -31,7 +31,15 @@ const doctorProfileSchema = new mongoose.Schema(
     workingDays: [
       {
         type: String,
-        enum: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء","الخميس","الجمعة"],
+        enum: [
+          "saturday",
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+        ],
       },
     ],
     startTime: String,
@@ -50,7 +58,7 @@ const doctorProfileSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 doctorProfileSchema.pre(/^find/, function () {
