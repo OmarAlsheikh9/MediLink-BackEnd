@@ -130,12 +130,7 @@ export const signUpSchema = z
 ///////////////////////////////////////////////////// login Schema //////////////////////////////////
 export const loginSchema = z.object({
   phone: egyptianPhone,
-  password: z
-    .string({
-      required_error: "password is required",
-      invalid_type_error: "password must be a string",
-    })
-    .min(1, "password is required"),
+  password: passwordSchema,
 });
 ///////////////////////////////////////////////////// forget Schema //////////////////////////////////
 
@@ -176,6 +171,23 @@ export const updatePasswordSchema = z
     path: ["confirmnewpassword"],
   });
 ////////////////////////////////////////////////////////////////////////
+export const specializationSchema = z.object({
+  name: z
+    .string({ required_error: "specialization name is required" })
+    .min(2, "Specialization name must be at least 2 characters long")
+    .max(100, "Specialization name cannot exceed 100 characters")
+    .trim()
+    .regex(
+      /^[a-zA-Z\s\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+$/,
+      { message: "Specialization name must contain only Arabic or English letters and spaces" }
+    ),
+  consultationFee: z
+    .number({
+      required_error: "consultation fee is required",
+      invalid_type_error: "fee must be a number",
+    })
+    .min(0, "fee cannot be negative"),
+});
 // validators/doctorValidator.js
 
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -261,11 +273,14 @@ export const createDoctorSchema = z
 
     // ─── DoctorProfile fields ────────────────────────────────────────────────────
     specialization: z
-      .string({ required_error: "specialization is required" })
-      .min(2, "specialization must be at least 2 characters")
-      .max(100, "specialization must be at most 100 characters")
-      .trim(),
-
+      .string({ required_error: "specialization name is required" })
+      .min(2, "Specialization name must be at least 2 characters long")
+      .max(100, "Specialization name cannot exceed 100 characters")
+      .trim()
+      .regex(
+        /^[a-zA-Z\s\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+$/,
+        { message: "Specialization name must contain only Arabic or English letters and spaces" }
+      ),
     experienceYears: z
       .number({
         required_error: "experience years is required",
@@ -279,13 +294,13 @@ export const createDoctorSchema = z
       .array(
         z.enum(
           [
-            "الاحد",
-            "الاثنين",
-            "الثلاثاء",
-            "الاربعاء",
-            "الخميس",
-            "الجمعة",
-            "السبت",
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
           ],
           {
             invalid_type_error: "each working day must be a valid day name",
@@ -346,13 +361,13 @@ export const updateDoctorSchema = z
     workingDays: z
       .array(
         z.enum([
-          "الاحد",
-          "الاثنين",
-          "الثلاثاء",
-          "الاربعاء",
-          "الخميس",
-          "الجمعة",
-          "السبت",
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
         ]),
       )
       .min(1)
@@ -404,7 +419,13 @@ export const ClinicInformationsSchema = z.object({
 const workingDaySchema = z
   .object({
     day: z.enum(
-      ["السبت", "الاحد", "الاثنين", "الثلاثاء", "الاربعاء", "الخميس", "الجمعة"],
+      [ "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday"],
       { required_error: "day is required" },
     ),
 
@@ -465,19 +486,7 @@ export const updateScheduleSchema = z.object({
     .optional(),
 });
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-export const specializationSchema = z.object({
-  name: z
-    .string({ required_error: "specialization name is required" })
-    .min(2)
-    .max(100)
-    .trim(),
-  consultationFee: z
-    .number({
-      required_error: "consultation fee is required",
-      invalid_type_error: "fee must be a number",
-    })
-    .min(0, "fee cannot be negative"),
-});
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export const createreceptionistSchema = z
@@ -564,13 +573,13 @@ export const createreceptionistSchema = z
       .array(
         z.enum(
           [
-            "الاحد",
-            "الاثنين",
-            "الثلاثاء",
-            "الاربعاء",
-            "الخميس",
-            "الجمعة",
-            "السبت",
+             "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
           ],
           {
             invalid_type_error: "each working day must be a valid day name",

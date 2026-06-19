@@ -14,14 +14,13 @@ import Prescription from "./models/prescriptionModel.js";
 import MedicalReport from "./models/medicalReportModel.js";
 import Review from "./models/reviewModel.js";
 
-// ─── all users share this password: Test@1234 ───────────────────────────────
 const HASHED_PASSWORD = await bcrypt.hash("Test@1234", 12);
 
 const seed = async () => {
   await mongoose.connect(process.env.LOCAL_DATABASE);
   console.log("✅ DB connected");
 
-  // ── 1. CLEAN everything first ─────────────────────────────────────────────
+  // ── 1. CLEAN ──────────────────────────────────────────────────────────────
   await Promise.all([
     User.deleteMany(),
     DoctorProfile.deleteMany(),
@@ -36,7 +35,7 @@ const seed = async () => {
   ]);
   console.log("🧹 Collections cleared");
 
-  // ── 2. SPECIALIZATIONS ────────────────────────────────────────────────────
+  // ── 2. SPECIALIZATIONS (Arabic names) ────────────────────────────────────
   const [cardiology, dermatology, pediatrics] = await Specialization.insertMany(
     [
       { name: "أمراض القلب والأوعية الدموية", consultationFee: 300 },
@@ -49,7 +48,7 @@ const seed = async () => {
   // ── 3. CLINIC ─────────────────────────────────────────────────────────────
   await Clinic.create({
     name: "Medilink Clinic",
-    address: "Cairo, Egypt",
+    address: "Egypt Cairo",
     description: "A modern clinic providing high quality healthcare services.",
     phone: "01012345678",
     email: "medilink@clinic.com",
@@ -86,10 +85,10 @@ const seed = async () => {
 
   // ── 4. ADMIN ──────────────────────────────────────────────────────────────
   const admin = await User.create({
-    firstName: "المدير",
-    lastName: "العام",
+    firstName: "توفيق",
+    lastName: "عبدالله",
     gender: "male",
-    birthDate: new Date("1985-01-01"),
+    birthDate: new Date("1980-01-01"),
     phone: "01000000000",
     role: "admin",
     password: HASHED_PASSWORD,
@@ -101,7 +100,7 @@ const seed = async () => {
   const doctorUsers = await User.insertMany([
     {
       firstName: "أحمد",
-      lastName: "حسن",
+      lastName: "الألفي",
       gender: "male",
       birthDate: new Date("1980-05-15"),
       phone: "01011111111",
@@ -110,8 +109,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "سارة",
-      lastName: "محمد",
+      firstName: "أماني",
+      lastName: "العطار",
       gender: "female",
       birthDate: new Date("1985-08-20"),
       phone: "01022222222",
@@ -120,8 +119,8 @@ const seed = async () => {
       isPreHashed: true,
     },
     {
-      firstName: "خالد",
-      lastName: "علي",
+      firstName: "يمان",
+      lastName: "علاء",
       gender: "male",
       birthDate: new Date("1978-03-10"),
       phone: "01033333333",
@@ -298,6 +297,7 @@ const seed = async () => {
   console.log("✅ Patients + profiles created");
 
   // ── 8. APPOINTMENTS ───────────────────────────────────────────────────────
+  // ✅ status values match your model enum exactly
   const [apt1, apt2, apt3, apt4] = await Appointment.insertMany([
     {
       patient: patient1._id,
@@ -335,12 +335,11 @@ const seed = async () => {
     },
   ]);
 
-  // pending appointments (upcoming)
   await Appointment.insertMany([
     {
       patient: patient4._id,
       doctor: doctor1._id,
-      date: new Date("2026-07-01"),
+      date: new Date("2026-07-20"),
       slotTime: "10:00",
       status: "قيد الانتظار",
       fees: 300,
@@ -348,7 +347,7 @@ const seed = async () => {
     {
       patient: patient5._id,
       doctor: doctor2._id,
-      date: new Date("2026-07-01"),
+      date: new Date("2026-07-20"),
       slotTime: "10:25",
       status: "قيد الانتظار",
       fees: 200,
@@ -356,7 +355,7 @@ const seed = async () => {
     {
       patient: patient2._id,
       doctor: doctor3._id,
-      date: new Date("2026-07-02"),
+      date: new Date("2026-07-21"),
       slotTime: "08:00",
       status: "قيد الانتظار",
       fees: 150,
@@ -364,7 +363,7 @@ const seed = async () => {
     {
       patient: patient3._id,
       doctor: doctor1._id,
-      date: new Date("2026-07-03"),
+      date: new Date("2026-07-22"),
       slotTime: "09:25",
       status: "ملغى",
       cancelledBy: "patient",
@@ -482,14 +481,14 @@ const seed = async () => {
   console.log("✅ Medical reports created");
 
   // ── 11. REVIEWS ───────────────────────────────────────────────────────────
-  await Promise.all([
-    Review.create({
+  await Review.insertMany([
+    {
       patient: patient1._id,
       doctor: doctor1._id,
       appointment: apt1._id,
       stars: 4.5,
       comment: "دكتور ممتاز، أنصح به بشدة!",
-    }),
+    },
     Review.create({
       patient: patient2._id,
       doctor: doctor1._id,

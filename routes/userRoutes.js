@@ -46,7 +46,7 @@ userRouter.patch(//* we should edit it to update all data otherwise password so 
   uploadSingleToImageKit("users"),
   updateMe,
 );
-userRouter.patch(//* check this 
+userRouter.patch(
   "/updatePassword",
   validate(updatePasswordSchema),
   updatePassword,

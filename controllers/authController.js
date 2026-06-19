@@ -115,7 +115,7 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
 export const login = catchAsync(async (req, res, next) => {
   const { phone, password } = req.body;
   const user = await User.findOne({ phone }).select("+password");
-  if (!user || !(await user.correctPassword(password)))
+  if (!user || !(await user.correctPassword(password,user.password)))
     return next(new AppError("invalid phone or password", 401));
   if(!user.active)
     return next(new AppError("User not active"));
@@ -232,7 +232,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
 export const updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select("+password");
-  if (!user || !(await user.correctPassword(req.body.password)))
+  if (!user || !(await user.correctPassword(req.body.password,user.password)))
     return next(new AppError("the password or email is not correct ", 401));
   const hashedPassword = await bcrypt.hash(req.body.newpassword, 12);
   user.password = hashedPassword;
