@@ -27,7 +27,9 @@ export const completeMyProfile = catchAsync(async (req, res, next) => {
   if (bloodType) profile.bloodType = bloodType;
   if (tall) profile.tall = tall;
   if (weight) profile.weight = weight;
-  if (smoking) profile.smoking = smoking;
+  if (typeof smoking === "boolean") {
+    profile.smoking = smoking;
+  }
   if (chronicMedications) profile.chronicMedications = chronicMedications;
   if (allergies) profile.allergies = allergies;
   if (chronicConditions) profile.chronicConditions = chronicConditions;
@@ -96,8 +98,20 @@ export const getPatientById = catchAsync(async (req, res, next) => {
     data: { patient: result[0] },
   });
 });
-
-//////////////////////////
+export const getMyProfile = catchAsync(async (req, res, next) => {
+  const profile = await PatientProfile.findOne({ user: req.user._id }).populate(
+    {
+      path: "user",
+      select:
+        "-password -__v -passwordChangedAt -passwordResetToken -passwordResetExpires -role",
+    },
+  );
+  if (!profile) return next(new AppError("patient profile not found", 404));
+  res.status(200).json({
+    status: "success",
+    data: { profile },
+  });
+});
 
 export const getAllPatients = catchAsync(async (req, res, next) => {
   const { role: _, ...safeQuery } = req.query;

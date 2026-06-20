@@ -18,7 +18,7 @@ const patientProfileSchema = new mongoose.Schema(
     },
     tall: Number,
     weight: Number,
-    smoking: Boolean,
+    smoking: Boolean ,
     chronicMedications: [String],
     allergies: [String],
     chronicConditions: [String],
