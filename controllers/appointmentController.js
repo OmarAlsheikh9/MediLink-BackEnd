@@ -42,7 +42,7 @@ export const getMyAppointments = catchAsync(async (req, res, next) => {
 export const getAllAppointments = catchAsync(async (req, res, next) => {
   const allAppointments = await Appointment.find()
     .populate("patient", "firstName lastName phone photo")
-    .populate("doctor", "firstName lastName phone photo")
+    .populate("doctor", "firstName lastName phone photo");
   res.status(200).json({
     status: "success",
     length: allAppointments.length,
@@ -51,7 +51,7 @@ export const getAllAppointments = catchAsync(async (req, res, next) => {
 });
 export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user._id;
-  const { search  } = req.query;
+  const { search } = req.query;
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const patients = await Appointment.aggregate([
@@ -74,7 +74,7 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
     },
 
     { $unwind: "$patient" },
-    
+
     ...(search
       ? [
           {
@@ -104,119 +104,122 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     length: patients.length,
-    data: { patients, },
+    data: { patients },
   });
 });
 
+export const getBookedAppointmentsForPatient = catchAsync(
+  async (req, res, next) => {
+    const patientId = req.user._id;
+    const { search, page = 1, limit = 10 } = req.query;
+    const appointments = await Appointment.aggregate([
+      // 1. only this patient's appointments
+      { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
 
-export const getBookedAppointmentsForPatient = catchAsync(async (req, res, next) => {
-  const patientId = req.user._id;
-  const { search, page = 1, limit = 10 } = req.query;
-  const appointments = await Appointment.aggregate([
-    // 1. only this patient's appointments
-    { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
-
-    // 2. get doctor user data (name, photo)
-    {
-      $lookup: {
-        from: "users",
-        let: { doctorId: "$doctor" },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$doctorId"] },
+      // 2. get doctor user data (name, photo)
+      {
+        $lookup: {
+          from: "users",
+          let: { doctorId: "$doctor" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$doctorId"] },
+              },
             },
-          },
-          {
-            $project: {
-              firstName: 1,
-              lastName: 1,
-              photo: 1,
+            {
+              $project: {
+                firstName: 1,
+                lastName: 1,
+                photo: 1,
+              },
             },
-          },
-        ],
-        as: "doctor",
+          ],
+          as: "doctor",
+        },
       },
-    },
-    { $unwind: "$doctor" },
+      { $unwind: "$doctor" },
 
-    // 3. get doctor specialization from doctorprofiles
-    {
-      $lookup: {
-        from: "doctorprofiles",
-        let: { doctorId: "$doctor._id" },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$user", "$$doctorId"] },
+      // 3. get doctor specialization from doctorprofiles
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          let: { doctorId: "$doctor._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$user", "$$doctorId"] },
+              },
             },
-          },
-          {
-            $lookup: {
-              from: "specializations",
-              localField: "specialization",
-              foreignField: "_id",
-              as: "specialization",
+            {
+              $lookup: {
+                from: "specializations",
+                localField: "specialization",
+                foreignField: "_id",
+                as: "specialization",
+              },
             },
-          },
-          { $unwind: { path: "$specialization", preserveNullAndEmpty: true } },
-          {
-            $project: {
-              "specialization.name": 1,
+            {
+              $unwind: { path: "$specialization", preserveNullAndEmpty: true },
             },
-          },
-        ],
-        as: "doctorProfile",
+            {
+              $project: {
+                "specialization.name": 1,
+              },
+            },
+          ],
+          as: "doctorProfile",
+        },
       },
-    },
-    {
-      $unwind: {
-        path: "$doctorProfile",
-        preserveNullAndEmptyArrays: true,
+      {
+        $unwind: {
+          path: "$doctorProfile",
+          preserveNullAndEmptyArrays: true,
+        },
       },
-    },
 
-    // 4. search by doctor name if provided
-    ...(search
-      ? [
-          {
-            $match: {
-              $or: [
-                { "doctor.firstName": { $regex: search, $options: "i" } },
-                { "doctor.lastName": { $regex: search, $options: "i" } },
-              ],
+      // 4. search by doctor name if provided
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "doctor.firstName": { $regex: search, $options: "i" } },
+                  { "doctor.lastName": { $regex: search, $options: "i" } },
+                ],
+              },
             },
-          },
-        ]
-      : []),
+          ]
+        : []),
 
-    // 5. sort by latest first
-    { $sort: { date: -1 } },
+      // 5. sort by latest first
+      { $sort: { date: -1 } },
 
-    // 6. pagination
-    { $skip: (Number(page) - 1) * Number(limit) },
-    { $limit: Number(limit) },
+      // 6. pagination
+      { $skip: (Number(page) - 1) * Number(limit) },
+      { $limit: Number(limit) },
 
-    // 7. return only what the UI needs
-    {
-      $project: {
-        _id: 1,
-        date: 1,
-        slotTime: 1,
-        status: 1,
-        fees: 1,
-        "doctor._id": 1,
-        "doctor.firstName": 1,
-        "doctor.lastName": 1,
-        "doctor.photo": 1,
-        "doctorProfile.specialization.name": 1,
+      // 7. return only what the UI needs
+      {
+        $project: {
+          _id: 1,
+          date: 1,
+          slotTime: 1,
+          status: 1,
+          fees: 1,
+          "doctor._id": 1,
+          "doctor.firstName": 1,
+          "doctor.lastName": 1,
+          "doctor.photo": 1,
+          "doctorProfile.specialization.name": 1,
+        },
       },
-    },
-  ]);
+    ]);
 
-  res.status(200).json({
-    status: "success",
-    length: appointments.length,
-    data: { appointments },
-  });
-});
+    res.status(200).json({
+      status: "success",
+      length: appointments.length,
+      data: { appointments },
+    });
+  },
+);
