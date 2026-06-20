@@ -45,7 +45,7 @@ export const getMedicalReportsForPatient = catchAsync(
   },
 );
 export const getMyMedicalReports = catchAsync(async (req, res, next) => {
-  const { patientId } = req.user._id;
+  const patientId = req.user._id;
 
   if (!mongoose.Types.ObjectId.isValid(patientId)) {
     return next(new AppError("invalid patient id", 400));
