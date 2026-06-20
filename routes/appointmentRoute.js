@@ -7,7 +7,7 @@ import { getMyAppointments,getPatientForDoctor,getBookedAppointmentsForPatient ,
 const router = express.Router();
 
 router.use(authnticate);
-router.get("/",restrictTo("admin"),getAllAppointments);
+router.get("/",restrictTo("admin","receptionist"),getAllAppointments);
 router.get("/my-appointments", restrictTo("doctor"),validateQuery(appointmentQuerySchema), getMyAppointments);
 router.get('/getPatientsForDoctor',restrictTo('doctor'),getPatientForDoctor);
 
