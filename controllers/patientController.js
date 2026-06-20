@@ -21,11 +21,13 @@ export const completeMyProfile = catchAsync(async (req, res, next) => {
     chronicMedications,
     allergies,
     chronicConditions,
+    smoking,
   } = req.body;
 
   if (bloodType) profile.bloodType = bloodType;
   if (tall) profile.tall = tall;
   if (weight) profile.weight = weight;
+  if (smoking) profile.smoking = smoking;
   if (chronicMedications) profile.chronicMedications = chronicMedications;
   if (allergies) profile.allergies = allergies;
   if (chronicConditions) profile.chronicConditions = chronicConditions;
