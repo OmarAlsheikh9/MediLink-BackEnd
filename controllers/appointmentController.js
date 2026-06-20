@@ -43,7 +43,7 @@ export const getMyAppointments = catchAsync(async (req, res, next) => {
 export const getAllAppointments = catchAsync(async (req, res, next) => {
   const allAppointments = await Appointment.find()
     .populate("patient", "firstName lastName phone photo")
-    .populate("doctor", "firstName lastName phone photo")
+    .populate("doctor", "firstName lastName phone photo");
   res.status(200).json({
     status: "success",
     length: allAppointments.length,
@@ -52,7 +52,7 @@ export const getAllAppointments = catchAsync(async (req, res, next) => {
 });
 export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user._id;
-  const { search  } = req.query;
+  const { search } = req.query;
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const patients = await Appointment.aggregate([
@@ -75,7 +75,7 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
     },
 
     { $unwind: "$patient" },
-    
+
     ...(search
       ? [
           {
@@ -105,121 +105,121 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     length: patients.length,
-    data: { patients, },
+    data: { patients },
   });
 });
-
 
 export const getBookedAppointmentsForPatient = catchAsync(async (req, res, next) => {
   const patientId = req.user._id;
   const { search, page = 1, limit = 10 } = req.query;
   if(!mongoose.Types.ObjectId.isValid(patientId)) return next(new AppError("Invalid id",400));
   const appointments = await Appointment.aggregate([
-    {
-      $match: {
-        patient: new mongoose.Types.ObjectId(patientId),
+      { 
+        $match: {
+          patient: new mongoose.Types.ObjectId(patientId),
+        }
       },
-    },
-    {
-      $lookup: {
-        from: "users",               
-        let: { doctorId: "$doctor" },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$doctorId"] },
+      {
+        $lookup: {
+          from: "users",
+          let: { doctorId: "$doctor" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$doctorId"] },
+              },
             },
-          },
-          {
-            $project: {
-              firstName: 1,
-              lastName: 1,
-              photo: 1,
+            {
+              $project: {
+                firstName: 1,
+                lastName: 1,
+                photo: 1,
+              },
             },
-          },
-        ],
-        as: "doctor", 
+          ],
+          as: "doctor",
+        },
       },
-    },
-    { $unwind: "$doctor" },
+      { $unwind: "$doctor" },
 
-    {
-      $lookup: {
-        from: "doctorprofiles",
-        let: { doctorUserId: "$doctor._id" },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$user", "$$doctorUserId"] },
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          let: { doctorUserId: "$doctor._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$user", "$$doctorUserId"] },
+              },
             },
-          },
-          {
-            $lookup: {
-              from: "specializations",
-              localField: "specialization", 
-              foreignField: "_id",          
-              as: "specialization",
+            {
+              $lookup: {
+                from: "specializations",
+                localField: "specialization",
+                foreignField: "_id",
+                as: "specialization",
+              },
             },
-          },
 
-          {
-            $unwind: {
-              path: "$specialization",
-              preserveNullAndEmptyArrays: true,
+            {
+              $unwind: {
+                path: "$specialization",
+                preserveNullAndEmptyArrays: true,
+              },
             },
-          },
 
-          {
-            $project: {
-              "specialization.name": 1,
+            {
+              $project: {
+                "specialization.name": 1,
+              },
             },
-          },
-        ],
-        as: "doctorProfile",
+          ],
+          as: "doctorProfile",
+        },
       },
-    },
-    {
-      $unwind: {
-        path: "$doctorProfile",
-        preserveNullAndEmptyArrays: true,
+      {
+        $unwind: {
+          path: "$doctorProfile",
+          preserveNullAndEmptyArrays: true,
+        },
       },
-    },
-    ...(search
-      ? [
-          {
-            $match: {
-              $or: [
-                { "doctor.firstName": { $regex: search, $options: "i" } },
-                { "doctor.lastName": { $regex: search, $options: "i" } },
-              ],
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "doctor.firstName": { $regex: search, $options: "i" } },
+                  { "doctor.lastName": { $regex: search, $options: "i" } },
+                ],
+              },
             },
-          },
-        ]
-      : []),
-    { $sort: { date: -1 } },
+          ]
+        : []),
+      { $sort: { date: -1 } },
 
-    { $skip: (Number(page) - 1) * Number(limit) },
-    { $limit: Number(limit) },
-    {
-      $project: {
-        _id: 1,
-        date: 1,
-        slotTime: 1,
-        status: 1,
-        fees: 1,
-        cancelledBy: 1,
-        "doctor._id": 1,
-        "doctor.firstName": 1,
-        "doctor.lastName": 1,
-        "doctor.photo": 1,
-        "doctorProfile.specialization.name": 1,
+      { $skip: (Number(page) - 1) * Number(limit) },
+      { $limit: Number(limit) },
+      {
+        $project: {
+          _id: 1,
+          date: 1,
+          slotTime: 1,
+          status: 1,
+          fees: 1,
+          cancelledBy: 1,
+          "doctor._id": 1,
+          "doctor.firstName": 1,
+          "doctor.lastName": 1,
+          "doctor.photo": 1,
+          "doctorProfile.specialization.name": 1,
+        },
       },
-    },
-  ]);
+    ]);
 
-  res.status(200).json({
-    status: "success",
-    length: appointments.length,
-    data: { appointments },
-  });
-});
+    res.status(200).json({
+      status: "success",
+      length: appointments.length,
+      data: { appointments },
+    });
+  },
+);
