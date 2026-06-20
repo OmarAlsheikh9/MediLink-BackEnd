@@ -110,13 +110,15 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
 
 export const getBookedAppointmentsForPatient = catchAsync(
   async (req, res, next) => {
-    const patientId = req.user._id;
+    const patientId = req.user._id; // from JWT — never trust frontend for this
     const { search, page = 1, limit = 10 } = req.query;
-    const appointments = await Appointment.aggregate([
-      // 1. only this patient's appointments
-      { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
 
-      // 2. get doctor user data (name, photo)
+    const appointments = await Appointment.aggregate([
+      {
+        $match: {
+          patient: new mongoose.Types.ObjectId(patientId),
+        },
+      },
       {
         $lookup: {
           from: "users",
@@ -140,15 +142,14 @@ export const getBookedAppointmentsForPatient = catchAsync(
       },
       { $unwind: "$doctor" },
 
-      // 3. get doctor specialization from doctorprofiles
       {
         $lookup: {
           from: "doctorprofiles",
-          let: { doctorId: "$doctor._id" },
+          let: { doctorUserId: "$doctor._id" },
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$user", "$$doctorId"] },
+                $expr: { $eq: ["$user", "$$doctorUserId"] },
               },
             },
             {
@@ -159,9 +160,14 @@ export const getBookedAppointmentsForPatient = catchAsync(
                 as: "specialization",
               },
             },
+
             {
-              $unwind: { path: "$specialization", preserveNullAndEmpty: true },
+              $unwind: {
+                path: "$specialization",
+                preserveNullAndEmptyArrays: true,
+              },
             },
+
             {
               $project: {
                 "specialization.name": 1,
@@ -177,8 +183,6 @@ export const getBookedAppointmentsForPatient = catchAsync(
           preserveNullAndEmptyArrays: true,
         },
       },
-
-      // 4. search by doctor name if provided
       ...(search
         ? [
             {
@@ -191,15 +195,10 @@ export const getBookedAppointmentsForPatient = catchAsync(
             },
           ]
         : []),
-
-      // 5. sort by latest first
       { $sort: { date: -1 } },
 
-      // 6. pagination
       { $skip: (Number(page) - 1) * Number(limit) },
       { $limit: Number(limit) },
-
-      // 7. return only what the UI needs
       {
         $project: {
           _id: 1,
@@ -207,6 +206,7 @@ export const getBookedAppointmentsForPatient = catchAsync(
           slotTime: 1,
           status: 1,
           fees: 1,
+          cancelledBy: 1,
           "doctor._id": 1,
           "doctor.firstName": 1,
           "doctor.lastName": 1,
