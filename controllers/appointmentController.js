@@ -474,34 +474,110 @@ export const bookAppointmentByReceptionist = catchAsync(
     }
   },
 );
+const findActivePatient = async (patientId, next) => {
+  if (!mongoose.Types.ObjectId.isValid(patientId))
+    return next(new AppError("invalid patient id", 400));
+
+  const patient = await User.collection.findOne({
+    _id: new mongoose.Types.ObjectId(patientId),
+    role: "patient",
+  });
+
+  if (!patient) return next(new AppError("no patient found with this id", 404));
+
+  if (!patient.active)
+    return next(new AppError("this patient account is deactivated", 403));
+
+  return patient;
+};
 export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user.id;
-  const { patientId } = req.params.id;
+  const patientId = req.params.id;
 
   if (!mongoose.Types.ObjectId.isValid(patientId))
-    return next(new AppError("Invalid id", 400));
+    return next(new AppError("invalid patient id", 400));
+
+  // bypass pre hook
+  const patientUser = await findActivePatient(patientId, next);
+  if (!patientUser) return;
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
 
-  const appointment = await Appointment.aggregate([
+  const result = await Appointment.aggregate([
+    // 1) match today's appointment
     {
       $match: {
         doctor: new mongoose.Types.ObjectId(doctorId),
         patient: new mongoose.Types.ObjectId(patientId),
         date: { $gte: todayStart, $lte: todayEnd },
+        status: "قيد الانتظار",
+      },
+    },
+
+    // 2) join patient user info
+    {
+      $lookup: {
+        from: "users",
+        localField: "patient",
+        foreignField: "_id",
+        as: "patient",
+      },
+    },
+    { $unwind: { path: "$patient", preserveNullAndEmptyArrays: true } },
+
+    // 3) join patient profile
+    {
+      $lookup: {
+        from: "patientprofiles",
+        localField: "patient._id",
+        foreignField: "user",
+        as: "patientProfile",
+      },
+    },
+    { $unwind: { path: "$patientProfile", preserveNullAndEmptyArrays: true } },
+
+    // 4) shape the response
+    {
+      $project: {
+        // appointment fields
+        date: 1,
+        slotTime: 1,
+        status: 1,
+        reason: 1,
+        fees: 1,
+        medicalFiles: 1,
+        createdAt: 1,
+
+        // patient basic info
+        "patient._id": 1,
+        "patient.firstName": 1,
+        "patient.lastName": 1,
+        "patient.phone": 1,
+        "patient.photo": 1,
+        "patient.gender": 1,
+        "patient.birthDate": 1,
+
+        // patient profile info
+        "patientProfile.bloodType": 1,
+        "patientProfile.tall": 1,
+        "patientProfile.weight": 1,
+        "patientProfile.smoking": 1,
+        "patientProfile.allergies": 1,
+        "patientProfile.chronicConditions": 1,
+        "patientProfile.chronicMedications": 1,
+        "patientProfile.medicalFiles": 1,
       },
     },
   ]);
 
-  if (!appointment.length)
-    return next(new AppError("No appointment found for today", 404));
+  if (!result.length)
+    return next(new AppError("no appointment found for today", 404));
 
   res.status(200).json({
     status: "success",
-    data: { appointment: appointment[0] },
+    data: { appointment: result[0] },
   });
 });
