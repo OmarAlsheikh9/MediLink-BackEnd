@@ -29,8 +29,8 @@ router.post(
   "/bookByPatient",
   restrictTo("patient"),
   validate(bookAppointmentSchema),
-  uploadMedicalFilesMiddleware,
-  uploadMultipleToImageKit("appointment-medical-files"),
+  //   uploadMedicalFilesMiddleware,
+  //   uploadMultipleToImageKit("appointment-medical-files"),
   bookAppointmentByPatient,
 );
 router.post(
