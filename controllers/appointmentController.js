@@ -473,7 +473,7 @@ export const bookAppointmentByReceptionist = catchAsync(
 });
 export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user.id;
-  const { patientId } = req.params.id;
+  const patientId  = req.params.id;
 
   if (!mongoose.Types.ObjectId.isValid(patientId))
     return next(new AppError("Invalid id", 400));
@@ -490,6 +490,7 @@ export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
         doctor: new mongoose.Types.ObjectId(doctorId),
         patient: new mongoose.Types.ObjectId(patientId),
         date: { $gte: todayStart, $lte: todayEnd },
+        status:{$eq:"قيد الانتظار"}
       },
     },
   ]);
