@@ -8,6 +8,8 @@ import Clinic from "../models/clinicModel.js";
 import User from "../models/userModel.js";
 import PatientProfile from "../models/patientProfileModel.js";
 import AppError from "../utils/appError.js";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 export const getMyAppointments = catchAsync(async (req, res, next) => {
   const { date, startDate, endDate, month, year } = req.validatedQuery;
 
@@ -405,78 +407,81 @@ export const bookAppointmentByReceptionist = catchAsync(
 
     const doctor = await User.findOne({ _id: doctorId, role: "doctor" });
     if (!doctor) return next(new AppError("doctor not found", 404));
-    // is doctor has avaliable in this time
-    const isAvaliable = await isDoctorAvailable(doctorId, date, slotTime);
-    if (!isAvaliable)
+    const isAvailable = await isDoctorAvailable(doctorId, date, slotTime);
+    if (!isAvailable)
       return next(new AppError("doctor isn't available in this time", 400));
+
     const specialization = await getDoctorSpecialization(doctorId);
     if (!specialization)
       return next(new AppError("doctor has no specialization assigned", 400));
 
-    const birthDate = new Date(year, month - 1, day);
-    const isTherePatient = await User.findOne({ phone });
-    if (isTherePatient)
-      return next(new AppError("this phone has already account", 400));
+    const existingPatient = await User.findOne({ phone });
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let patientId;
 
-    try {
-      let [newPatient] = await User.create(
-        [
-          {
-            firstName,
-            lastName,
-            phone,
-            gender,
-            birthDate,
-            role: "patient",
-            password: "Test@1234",
-          },
-        ],
-        { session },
-      );
+    if (existingPatient) {
+      patientId = existingPatient._id;
+    } else {
+      const birthDate = new Date(year, month - 1, day);
 
-      await PatientProfile.create(
-        [
-          {
-            user: newPatient._id,
-          },
-        ],
-        { session },
-      );
+      const tempPassword = crypto.randomBytes(8).toString("hex");
+      const hashedPassword = await bcrypt.hash(tempPassword, 12);
 
-      const newAppointment = await Appointment.create(
-        [
-          {
-            patient: newPatient._id,
-            doctor: doctorId,
-            date,
-            slotTime,
-            fees: specialization.consultationFee,
-            reason: "",
-          },
-        ],
-        { session },
-      );
+      const session = await mongoose.startSession();
+      session.startTransaction();
 
-      await session.commitTransaction();
-      session.endSession();
+      try {
+        const [newPatient] = await User.create(
+          [
+            {
+              firstName,
+              lastName,
+              phone,
+              gender,
+              birthDate,
+              role: "patient",
+              password: hashedPassword,
+              isPreHashed: true,
+            },
+          ],
+          { session },
+        );
 
-      res.status(201).json({
-        status: "success",
-        data: { appointment: newAppointment[0] },
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(err);
+        await PatientProfile.create(
+          [{ user: newPatient._id }],
+          { session },
+        );
+
+        await session.commitTransaction();
+        session.endSession();
+
+        patientId = newPatient._id;
+
+      } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        return next(err);
+      }
     }
+
+    const newAppointment = await Appointment.create({
+      patient: patientId,
+      doctor: doctorId,
+      date,
+      slotTime,
+      fees: specialization.consultationFee,
+      reason: "",
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: { appointment: newAppointment },
+    });
   },
 );
 export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user.id;
-  const patientId  = req.params.id;
+  const patientId = req.params.id;
 
   if (!mongoose.Types.ObjectId.isValid(patientId))
     return next(new AppError("Invalid id", 400));
@@ -493,7 +498,7 @@ export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
         doctor: new mongoose.Types.ObjectId(doctorId),
         patient: new mongoose.Types.ObjectId(patientId),
         date: { $gte: todayStart, $lte: todayEnd },
-        status:{$eq:"قيد الانتظار"}
+        status: { $eq: "قيد الانتظار" },
       },
     },
   ]);
