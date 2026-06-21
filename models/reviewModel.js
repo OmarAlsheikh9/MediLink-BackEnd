@@ -35,7 +35,7 @@ const reviewSchema = new mongoose.Schema(
       maxlength: [500, "comment must be at most 500 characters"],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // prevent one patient from reviewing the same doctor twice
@@ -55,13 +55,23 @@ reviewSchema.statics.recalcRating = async function (doctorId) {
     },
   ]);
 
-  await DoctorProfile.findOneAndUpdate(
-    { user: doctorId },
-    {
-      ratingsAverage: stats.length ? stats[0].avgRating : 0,
-      ratingsCount: stats.length ? stats[0].count : 0,
-    }
-  );
+  if (stats.length > 0) {
+    await DoctorProfile.findByIdAndUpdate(
+      { user: doctorId },
+      {
+        ratingsAverage: stats[0].avgRating,
+        ratingsCount: stats[0].count,
+      },
+    );
+  } else {
+    await DoctorProfile.findByIdAndUpdate(
+      { user: doctorId },
+      {
+        ratingsAverage: 4.5,
+        ratingsCount: 0,
+      },
+    );
+  }
 };
 
 // after saving a new review → recalculate
