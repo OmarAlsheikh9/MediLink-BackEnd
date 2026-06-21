@@ -16,6 +16,24 @@ import Review from "./models/reviewModel.js";
 
 const HASHED_PASSWORD = await bcrypt.hash("Test@1234", 12);
 
+// ── DATE HELPERS ─────────────────────────────────────────────────────────────
+// today
+const today = new Date(); today.setHours(0, 0, 0, 0);
+
+// this week (next 5 working days from today)
+const thisWeek1 = new Date(today); thisWeek1.setDate(today.getDate() + 1);
+const thisWeek2 = new Date(today); thisWeek2.setDate(today.getDate() + 2);
+const thisWeek3 = new Date(today); thisWeek3.setDate(today.getDate() + 3);
+const thisWeek4 = new Date(today); thisWeek4.setDate(today.getDate() + 4);
+const thisWeek5 = new Date(today); thisWeek5.setDate(today.getDate() + 5);
+
+// next week
+const nextWeek1 = new Date(today); nextWeek1.setDate(today.getDate() + 7);
+const nextWeek2 = new Date(today); nextWeek2.setDate(today.getDate() + 8);
+const nextWeek3 = new Date(today); nextWeek3.setDate(today.getDate() + 9);
+const nextWeek4 = new Date(today); nextWeek4.setDate(today.getDate() + 10);
+const nextWeek5 = new Date(today); nextWeek5.setDate(today.getDate() + 11);
+
 const seed = async () => {
   await mongoose.connect(process.env.LOCAL_DATABASE);
   console.log("✅ DB connected");
@@ -35,16 +53,16 @@ const seed = async () => {
   ]);
   console.log("🧹 Collections cleared");
 
-  // ── 2. SPECIALIZATIONS ────────────────────────────────────────────────────
-  const [cardiology, dermatology, pediatrics, neurology, orthopedics, dentistry, ophthalmology] =
+  // ── 2. SPECIALIZATIONS (matching the Figma design exactly) ────────────────
+  const [ophthalmology, neurology, ent, dermatology, pediatrics, internalMedicine, dentistry] =
     await Specialization.insertMany([
-      { name: "أمراض القلب والأوعية الدموية", consultationFee: 300 },
-      { name: "الأمراض الجلدية والتناسلية",   consultationFee: 200 },
-      { name: "طب الأطفال وحديثي الولادة",    consultationFee: 150 },
-      { name: "المخ والأعصاب",                consultationFee: 350 },
-      { name: "العظام والمفاصل",              consultationFee: 250 },
-      { name: "الفم والأسنان",                consultationFee: 180 },
-      { name: "طب وجراحة العيون",             consultationFee: 220 },
+      { name: "العين",                 consultationFee: 220 },
+      { name: "مخ وأعصاب",             consultationFee: 350 },
+      { name: "أنف وأذن",              consultationFee: 200 },
+      { name: "الجلدية والتجميل",      consultationFee: 250 },
+      { name: "الأطفال",               consultationFee: 150 },
+      { name: "الباطنة",               consultationFee: 200 },
+      { name: "الفم والأسنان",         consultationFee: 180 },
     ]);
   console.log("✅ Specializations created (7)");
 
@@ -97,13 +115,13 @@ const seed = async () => {
   const [doctor1, doctor2, doctor3, doctor4, doctor5, doctor6, doctor7] = doctorUsers;
 
   await DoctorProfile.insertMany([
-    { user: doctor1._id, specialization: cardiology._id,    experienceYears: 12, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
-    { user: doctor2._id, specialization: dermatology._id,   experienceYears: 8,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "10:00", endTime: "18:00" },
-    { user: doctor3._id, specialization: pediatrics._id,    experienceYears: 15, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "08:00", endTime: "16:00" },
-    { user: doctor4._id, specialization: neurology._id,     experienceYears: 10, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
-    { user: doctor5._id, specialization: orthopedics._id,   experienceYears: 6,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
-    { user: doctor6._id, specialization: dentistry._id,     experienceYears: 9,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "10:00", endTime: "18:00" },
-    { user: doctor7._id, specialization: ophthalmology._id, experienceYears: 7,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
+    { user: doctor1._id, specialization: internalMedicine._id, experienceYears: 12, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
+    { user: doctor2._id, specialization: dermatology._id,      experienceYears: 8,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "10:00", endTime: "18:00" },
+    { user: doctor3._id, specialization: pediatrics._id,       experienceYears: 15, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "08:00", endTime: "16:00" },
+    { user: doctor4._id, specialization: neurology._id,        experienceYears: 10, workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
+    { user: doctor5._id, specialization: ent._id,               experienceYears: 6,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
+    { user: doctor6._id, specialization: dentistry._id,        experienceYears: 9,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "10:00", endTime: "18:00" },
+    { user: doctor7._id, specialization: ophthalmology._id,    experienceYears: 7,  workingDays: ["السبت","الاحد","الاثنين","الثلاثاء","الاربعاء"], startTime: "09:00", endTime: "17:00" },
   ]);
   console.log("✅ Doctors + profiles created (7)");
 
@@ -153,79 +171,105 @@ const seed = async () => {
   // ── 8. APPOINTMENTS ───────────────────────────────────────────────────────
   // completed — past dates (for prescriptions, reports, reviews)
   const completedApts = await Appointment.insertMany([
-    // doctor1 (cardiology) appointments
-    { patient: p1._id,  doctor: doctor1._id, date: new Date("2025-11-10"), slotTime: "09:00", status: "مكتمل", fees: 300, reason: "ألم في الصدر وضيق في التنفس" },
-    { patient: p2._id,  doctor: doctor1._id, date: new Date("2025-11-12"), slotTime: "09:25", status: "مكتمل", fees: 300, reason: "خفقان القلب والدوخة" },
-    { patient: p3._id,  doctor: doctor1._id, date: new Date("2025-11-15"), slotTime: "10:15", status: "مكتمل", fees: 300, reason: "ارتفاع ضغط الدم" },
-    { patient: p1._id,  doctor: doctor1._id, date: new Date("2025-12-10"), slotTime: "09:00", status: "مكتمل", fees: 300, reason: "متابعة دورية" },
-    { patient: p6._id,  doctor: doctor1._id, date: new Date("2026-01-08"), slotTime: "09:25", status: "مكتمل", fees: 300, reason: "فحص دوري للقلب" },
-    // doctor2 (dermatology) appointments
-    { patient: p2._id,  doctor: doctor2._id, date: new Date("2025-11-20"), slotTime: "10:00", status: "مكتمل", fees: 200, reason: "طفح جلدي وحكة شديدة" },
-    { patient: p5._id,  doctor: doctor2._id, date: new Date("2025-12-01"), slotTime: "10:25", status: "مكتمل", fees: 200, reason: "حب الشباب والبثور" },
-    { patient: p7._id,  doctor: doctor2._id, date: new Date("2025-12-20"), slotTime: "11:00", status: "مكتمل", fees: 200, reason: "إكزيما الجلد" },
-    // doctor3 (pediatrics) appointments
+    // doctor1 (الباطنة) appointments
+    { patient: p1._id,  doctor: doctor1._id, date: new Date("2025-11-10"), slotTime: "09:00", status: "مكتمل", fees: 200, reason: "آلام في المعدة وحرقان" },
+    { patient: p2._id,  doctor: doctor1._id, date: new Date("2025-11-12"), slotTime: "09:25", status: "مكتمل", fees: 200, reason: "غثيان وآلام في البطن" },
+    { patient: p3._id,  doctor: doctor1._id, date: new Date("2025-11-15"), slotTime: "10:15", status: "مكتمل", fees: 200, reason: "إرهاق عام وشحوب" },
+    { patient: p1._id,  doctor: doctor1._id, date: new Date("2025-12-10"), slotTime: "09:00", status: "مكتمل", fees: 200, reason: "متابعة دورية" },
+    { patient: p6._id,  doctor: doctor1._id, date: new Date("2026-01-08"), slotTime: "09:25", status: "مكتمل", fees: 200, reason: "فحص دوري شامل" },
+    // doctor2 (الجلدية والتجميل) appointments
+    { patient: p2._id,  doctor: doctor2._id, date: new Date("2025-11-20"), slotTime: "10:00", status: "مكتمل", fees: 250, reason: "طفح جلدي وحكة شديدة" },
+    { patient: p5._id,  doctor: doctor2._id, date: new Date("2025-12-01"), slotTime: "10:25", status: "مكتمل", fees: 250, reason: "حب الشباب والبثور" },
+    { patient: p7._id,  doctor: doctor2._id, date: new Date("2025-12-20"), slotTime: "11:00", status: "مكتمل", fees: 250, reason: "إكزيما الجلد" },
+    // doctor3 (الأطفال) appointments
     { patient: p3._id,  doctor: doctor3._id, date: new Date("2025-11-25"), slotTime: "08:00", status: "مكتمل", fees: 150, reason: "حمى وسعال للطفل" },
     { patient: p9._id,  doctor: doctor3._id, date: new Date("2025-12-05"), slotTime: "08:25", status: "مكتمل", fees: 150, reason: "لقاحات وجرعات الطفل" },
-    // doctor4 (neurology) appointments
+    // doctor4 (مخ وأعصاب) appointments
     { patient: p4._id,  doctor: doctor4._id, date: new Date("2025-12-08"), slotTime: "09:00", status: "مكتمل", fees: 350, reason: "صداع نصفي مزمن" },
     { patient: p8._id,  doctor: doctor4._id, date: new Date("2026-01-15"), slotTime: "09:25", status: "مكتمل", fees: 350, reason: "تنميل في الأطراف" },
-    // doctor5 (orthopedics) appointments
-    { patient: p6._id,  doctor: doctor5._id, date: new Date("2025-12-12"), slotTime: "09:00", status: "مكتمل", fees: 250, reason: "ألم في الركبة" },
-    { patient: p10._id, doctor: doctor5._id, date: new Date("2026-01-20"), slotTime: "09:25", status: "مكتمل", fees: 250, reason: "إصابة في الظهر" },
-    // doctor6 (dentistry) appointments
+    // doctor5 (أنف وأذن) appointments
+    { patient: p6._id,  doctor: doctor5._id, date: new Date("2025-12-12"), slotTime: "09:00", status: "مكتمل", fees: 200, reason: "احتقان بالأنف وصداع بالجيوب" },
+    { patient: p10._id, doctor: doctor5._id, date: new Date("2026-01-20"), slotTime: "09:25", status: "مكتمل", fees: 200, reason: "طنين بالأذن وضعف سمع" },
+    // doctor6 (الفم والأسنان) appointments
     { patient: p7._id,  doctor: doctor6._id, date: new Date("2025-12-15"), slotTime: "10:00", status: "مكتمل", fees: 180, reason: "ألم في الأسنان" },
     { patient: p1._id,  doctor: doctor6._id, date: new Date("2026-01-10"), slotTime: "10:25", status: "مكتمل", fees: 180, reason: "تنظيف الأسنان الدورية" },
   ]);
 
   // pending — future dates (upcoming appointments)
   await Appointment.insertMany([
-    { patient: p1._id,  doctor: doctor1._id, date: new Date("2026-07-26"), slotTime: "09:00", status: "قيد الانتظار", fees: 300, reason: "متابعة دورية" },
-    { patient: p4._id,  doctor: doctor1._id, date: new Date("2026-07-26"), slotTime: "09:25", status: "قيد الانتظار", fees: 300, reason: "فحص القلب" },
-    { patient: p5._id,  doctor: doctor2._id, date: new Date("2026-07-27"), slotTime: "10:00", status: "قيد الانتظار", fees: 200, reason: "حساسية جلدية" },
+    { patient: p1._id,  doctor: doctor1._id, date: new Date("2026-07-26"), slotTime: "09:00", status: "قيد الانتظار", fees: 200, reason: "متابعة دورية" },
+    { patient: p4._id,  doctor: doctor1._id, date: new Date("2026-07-26"), slotTime: "09:25", status: "قيد الانتظار", fees: 200, reason: "فحص شامل" },
+    { patient: p5._id,  doctor: doctor2._id, date: new Date("2026-07-27"), slotTime: "10:00", status: "قيد الانتظار", fees: 250, reason: "حساسية جلدية" },
     { patient: p2._id,  doctor: doctor3._id, date: new Date("2026-07-27"), slotTime: "08:00", status: "قيد الانتظار", fees: 150, reason: "فحص طفل" },
     { patient: p8._id,  doctor: doctor4._id, date: new Date("2026-07-28"), slotTime: "09:00", status: "قيد الانتظار", fees: 350, reason: "صداع مستمر" },
-    { patient: p10._id, doctor: doctor5._id, date: new Date("2026-07-28"), slotTime: "09:25", status: "قيد الانتظار", fees: 250, reason: "ألم في العمود الفقري" },
+    { patient: p10._id, doctor: doctor5._id, date: new Date("2026-07-28"), slotTime: "09:25", status: "قيد الانتظار", fees: 200, reason: "التهاب بالحلق واللوزتين" },
     { patient: p9._id,  doctor: doctor6._id, date: new Date("2026-07-29"), slotTime: "10:00", status: "قيد الانتظار", fees: 180, reason: "تقويم الأسنان" },
     { patient: p3._id,  doctor: doctor7._id, date: new Date("2026-07-29"), slotTime: "09:00", status: "قيد الانتظار", fees: 220, reason: "ضعف النظر" },
   ]);
 
+  // THIS WEEK appointments (10)
+  await Appointment.insertMany([
+    { patient: p1._id,  doctor: doctor1._id, date: thisWeek1, slotTime: "09:00", status: "قيد الانتظار", fees: 300, reason: "متابعة دورية للقلب" },
+    { patient: p6._id,  doctor: doctor1._id, date: thisWeek1, slotTime: "09:25", status: "قيد الانتظار", fees: 300, reason: "ارتفاع ضغط الدم" },
+    { patient: p7._id,  doctor: doctor2._id, date: thisWeek2, slotTime: "09:00", status: "قيد الانتظار", fees: 200, reason: "مراجعة علاج الإكزيما" },
+    { patient: p3._id,  doctor: doctor2._id, date: thisWeek2, slotTime: "09:25", status: "قيد الانتظار", fees: 200, reason: "حساسية جلدية مزمنة" },
+    { patient: p9._id,  doctor: doctor3._id, date: thisWeek3, slotTime: "09:00", status: "قيد الانتظار", fees: 150, reason: "كحة وزكام الطفل" },
+    { patient: p4._id,  doctor: doctor4._id, date: thisWeek3, slotTime: "09:25", status: "قيد الانتظار", fees: 350, reason: "دوار ودوخة مستمرة" },
+    { patient: p10._id, doctor: doctor5._id, date: thisWeek4, slotTime: "09:00", status: "قيد الانتظار", fees: 250, reason: "ألم في العمود الفقري" },
+    { patient: p2._id,  doctor: doctor6._id, date: thisWeek4, slotTime: "09:25", status: "قيد الانتظار", fees: 180, reason: "تقويم الأسنان" },
+    { patient: p5._id,  doctor: doctor7._id, date: thisWeek5, slotTime: "09:00", status: "قيد الانتظار", fees: 220, reason: "ضعف النظر والصداع" },
+    { patient: p8._id,  doctor: doctor1._id, date: thisWeek5, slotTime: "09:00", status: "قيد الانتظار", fees: 300, reason: "فحص القلب الدوري" },
+  ]);
+
+  // NEXT WEEK appointments (10)
+  await Appointment.insertMany([
+    { patient: p2._id,  doctor: doctor1._id, date: nextWeek1, slotTime: "09:00", status: "قيد الانتظار", fees: 300, reason: "متابعة خفقان القلب" },
+    { patient: p3._id,  doctor: doctor1._id, date: nextWeek1, slotTime: "09:25", status: "قيد الانتظار", fees: 300, reason: "ارتفاع ضغط الدم" },
+    { patient: p6._id,  doctor: doctor2._id, date: nextWeek2, slotTime: "09:00", status: "قيد الانتظار", fees: 200, reason: "علاج التشقق الجلدي" },
+    { patient: p1._id,  doctor: doctor3._id, date: nextWeek2, slotTime: "09:25", status: "قيد الانتظار", fees: 150, reason: "فحص الطفل الدوري" },
+    { patient: p5._id,  doctor: doctor4._id, date: nextWeek3, slotTime: "09:00", status: "قيد الانتظار", fees: 350, reason: "صداع نصفي مزمن" },
+    { patient: p10._id, doctor: doctor4._id, date: nextWeek3, slotTime: "09:25", status: "قيد الانتظار", fees: 350, reason: "تنميل في الأطراف" },
+    { patient: p7._id,  doctor: doctor5._id, date: nextWeek4, slotTime: "09:00", status: "قيد الانتظار", fees: 250, reason: "إصابة رياضية في الكتف" },
+    { patient: p4._id,  doctor: doctor6._id, date: nextWeek4, slotTime: "09:25", status: "قيد الانتظار", fees: 180, reason: "تركيب تاج سن" },
+    { patient: p9._id,  doctor: doctor7._id, date: nextWeek5, slotTime: "09:00", status: "قيد الانتظار", fees: 220, reason: "احمرار وحرقة في العين" },
+    { patient: p6._id,  doctor: doctor7._id, date: nextWeek5, slotTime: "09:25", status: "قيد الانتظار", fees: 220, reason: "فحص النظر الدوري" },
+  ]);
+
   // cancelled appointments
   await Appointment.insertMany([
-    { patient: p3._id, doctor: doctor1._id, date: new Date("2026-07-30"), slotTime: "09:25", status: "ملغى", cancelledBy: "patient",      fees: 300, reason: "فحص القلب" },
-    { patient: p7._id, doctor: doctor2._id, date: new Date("2026-07-30"), slotTime: "10:00", status: "ملغى", cancelledBy: "doctor",       fees: 200, reason: "حساسية" },
+    { patient: p3._id, doctor: doctor1._id, date: new Date("2026-07-30"), slotTime: "09:25", status: "ملغى", cancelledBy: "patient",      fees: 200, reason: "فحص شامل" },
+    { patient: p7._id, doctor: doctor2._id, date: new Date("2026-07-30"), slotTime: "10:00", status: "ملغى", cancelledBy: "doctor",       fees: 250, reason: "حساسية" },
     { patient: p5._id, doctor: doctor3._id, date: new Date("2026-07-31"), slotTime: "08:25", status: "ملغى", cancelledBy: "receptionist", fees: 150, reason: "فحص روتيني" },
   ]);
-  console.log("✅ Appointments created (27 total — 16 completed, 8 pending, 3 cancelled)");
+  console.log("✅ Appointments created (47 total — 16 completed, 8 today+future, 10 this week, 10 next week, 3 cancelled)");
 
   // ── 9. PRESCRIPTIONS ──────────────────────────────────────────────────────
   await Prescription.insertMany([
     {
       patient: p1._id, doctor: doctor1._id, appointment: completedApts[0]._id,
       medicines: [
-        { name: "Aspirin",      dose: "100mg", frequency: "مرة يومياً",   duration: "30 يوم" },
-        { name: "Atorvastatin", dose: "20mg",  frequency: "مرة يومياً",   duration: "30 يوم" },
-        { name: "Bisoprolol",   dose: "5mg",   frequency: "مرة صباحاً",   duration: "30 يوم" },
+        { name: "Omeprazole",   dose: "20mg",  frequency: "مرة يومياً",   duration: "14 يوم" },
+        { name: "Antacid Gel",  dose: "10ml",  frequency: "عند الحاجة",   duration: "14 يوم" },
       ],
     },
     {
       patient: p2._id, doctor: doctor1._id, appointment: completedApts[1]._id,
       medicines: [
-        { name: "Metoprolol",   dose: "50mg",  frequency: "مرتين يومياً", duration: "14 يوم" },
-        { name: "Amlodipine",   dose: "5mg",   frequency: "مرة يومياً",   duration: "30 يوم" },
+        { name: "Domperidone",  dose: "10mg",  frequency: "3 مرات يومياً", duration: "7 أيام" },
+        { name: "Omeprazole",   dose: "20mg",  frequency: "مرة يومياً",   duration: "14 يوم" },
       ],
     },
     {
       patient: p3._id, doctor: doctor1._id, appointment: completedApts[2]._id,
       medicines: [
-        { name: "Lisinopril",   dose: "10mg",  frequency: "مرة يومياً",   duration: "30 يوم" },
-        { name: "Paracetamol",  dose: "500mg", frequency: "كل 8 ساعات",   duration: "7 أيام" },
+        { name: "Ferrous Sulfate", dose: "200mg", frequency: "مرة يومياً", duration: "30 يوم" },
+        { name: "Vitamin B12",     dose: "1000mcg", frequency: "مرة أسبوعياً", duration: "30 يوم" },
       ],
     },
     {
       patient: p1._id, doctor: doctor1._id, appointment: completedApts[3]._id,
       medicines: [
-        { name: "Aspirin",      dose: "100mg", frequency: "مرة يومياً",   duration: "30 يوم" },
-        { name: "Bisoprolol",   dose: "5mg",   frequency: "مرة صباحاً",   duration: "30 يوم" },
+        { name: "Omeprazole",   dose: "20mg",  frequency: "مرة يومياً",   duration: "14 يوم" },
       ],
     },
     {
@@ -259,8 +303,8 @@ const seed = async () => {
     {
       patient: p6._id, doctor: doctor5._id, appointment: completedApts[12]._id,
       medicines: [
-        { name: "Ibuprofen",    dose: "400mg", frequency: "كل 8 ساعات",   duration: "10 أيام" },
-        { name: "Diclofenac",   dose: "جيل",  frequency: "3 مرات يومياً", duration: "14 يوم" },
+        { name: "Mometasone",   dose: "بخاخ",  frequency: "مرة يومياً",   duration: "14 يوم" },
+        { name: "Saline Nasal Wash", dose: "محلول", frequency: "مرتين يومياً", duration: "14 يوم" },
       ],
     },
     {
@@ -275,16 +319,16 @@ const seed = async () => {
 
   // ── 10. MEDICAL REPORTS ───────────────────────────────────────────────────
   await MedicalReport.insertMany([
-    { patient: p1._id, doctor: doctor1._id, appointment: completedApts[0]._id,  diagnosis: "ذبحة صدرية مستقرة",          notes: "يحتاج المريض إلى متابعة دورية كل شهر وإجراء رسم قلب" },
-    { patient: p2._id, doctor: doctor1._id, appointment: completedApts[1]._id,  diagnosis: "اضطراب في نظم القلب",         notes: "تم وصف مضادات التخثر وتحديد موعد لمراقبة هولتر" },
-    { patient: p3._id, doctor: doctor1._id, appointment: completedApts[2]._id,  diagnosis: "ارتفاع ضغط الدم الأولي",      notes: "تعديل نمط الحياة وتقليل ملح الطعام مع المتابعة الشهرية" },
-    { patient: p1._id, doctor: doctor1._id, appointment: completedApts[3]._id,  diagnosis: "ذبحة صدرية مستقرة - متابعة", notes: "تحسن ملحوظ في الحالة، الاستمرار في الدواء" },
-    { patient: p2._id, doctor: doctor2._id, appointment: completedApts[5]._id,  diagnosis: "التهاب جلدي تحسسي",           notes: "تجنب المواد المسببة للحساسية واستخدام الكريم الموصوف" },
-    { patient: p5._id, doctor: doctor2._id, appointment: completedApts[6]._id,  diagnosis: "حب الشباب الشديد",            notes: "بدء علاج الإيزوتريتينوين مع متابعة وظائف الكبد شهرياً" },
-    { patient: p3._id, doctor: doctor3._id, appointment: completedApts[8]._id,  diagnosis: "التهاب الجهاز التنفسي العلوي", notes: "الراحة التامة وتناول السوائل الدافئة والدواء الموصوف" },
-    { patient: p4._id, doctor: doctor4._id, appointment: completedApts[10]._id, diagnosis: "الصداع النصفي المزمن",         notes: "تجنب المثيرات وتطبيق تقنيات الاسترخاء" },
-    { patient: p6._id, doctor: doctor5._id, appointment: completedApts[12]._id, diagnosis: "التهاب الغضروف الرضفي",        notes: "الراحة وتمارين تقوية عضلات الفخذ وكمادات الثلج" },
-    { patient: p7._id, doctor: doctor6._id, appointment: completedApts[14]._id, diagnosis: "خراج سني حاد",                 notes: "تم تصريف الخراج ووصف المضاد الحيوي المناسب" },
+    { patient: p1._id, doctor: doctor1._id, appointment: completedApts[0]._id,  diagnosis: "ارتفاع ضغط الدم الأولي",          notes: "يحتاج المريض إلى متابعة دورية كل شهر وقياس الضغط يومياً" },
+    { patient: p2._id, doctor: doctor1._id, appointment: completedApts[1]._id,  diagnosis: "التهاب المعدة الحاد",             notes: "تم وصف مثبطات الحموضة مع نظام غذائي خاص" },
+    { patient: p3._id, doctor: doctor1._id, appointment: completedApts[2]._id,  diagnosis: "فقر الدم بسبب نقص الحديد",        notes: "تعديل النظام الغذائي وتناول مكملات الحديد مع المتابعة الشهرية" },
+    { patient: p1._id, doctor: doctor1._id, appointment: completedApts[3]._id,  diagnosis: "ارتفاع ضغط الدم - متابعة",        notes: "تحسن ملحوظ في الحالة، الاستمرار في الدواء" },
+    { patient: p2._id, doctor: doctor2._id, appointment: completedApts[5]._id,  diagnosis: "التهاب جلدي تحسسي",               notes: "تجنب المواد المسببة للحساسية واستخدام الكريم الموصوف" },
+    { patient: p5._id, doctor: doctor2._id, appointment: completedApts[6]._id,  diagnosis: "حب الشباب الشديد",                notes: "بدء علاج الإيزوتريتينوين مع متابعة وظائف الكبد شهرياً" },
+    { patient: p3._id, doctor: doctor3._id, appointment: completedApts[8]._id,  diagnosis: "التهاب الجهاز التنفسي العلوي",     notes: "الراحة التامة وتناول السوائل الدافئة والدواء الموصوف" },
+    { patient: p4._id, doctor: doctor4._id, appointment: completedApts[10]._id, diagnosis: "الصداع النصفي المزمن",            notes: "تجنب المثيرات وتطبيق تقنيات الاسترخاء" },
+    { patient: p6._id, doctor: doctor5._id, appointment: completedApts[12]._id, diagnosis: "التهاب الجيوب الأنفية المزمن",     notes: "غسول أنفي يومي ومضاد حيوي مع المتابعة بعد أسبوعين" },
+    { patient: p7._id, doctor: doctor6._id, appointment: completedApts[14]._id, diagnosis: "خراج سني حاد",                    notes: "تم تصريف الخراج ووصف المضاد الحيوي المناسب" },
   ]);
   console.log("✅ Medical reports created (10)");
 
@@ -310,13 +354,13 @@ const seed = async () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("👤 Admin        → 01000000000  (توفيق عبدالله)");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("👨‍⚕️ Doctor 1     → 01011111111  (أحمد الألفي     - أمراض القلب)");
-  console.log("👩‍⚕️ Doctor 2     → 01022222222  (أماني العطار    - الأمراض الجلدية)");
-  console.log("👨‍⚕️ Doctor 3     → 01033333333  (يمان علاء       - طب الأطفال)");
-  console.log("👨‍⚕️ Doctor 4     → 01034444444  (جلال عبدالله    - المخ والأعصاب)");
-  console.log("👩‍⚕️ Doctor 5     → 01035555555  (سارة سلامة      - العظام والمفاصل)");
+  console.log("👨‍⚕️ Doctor 1     → 01011111111  (أحمد الألفي     - الباطنة)");
+  console.log("👩‍⚕️ Doctor 2     → 01022222222  (أماني العطار    - الجلدية والتجميل)");
+  console.log("👨‍⚕️ Doctor 3     → 01033333333  (يمان علاء       - الأطفال)");
+  console.log("👨‍⚕️ Doctor 4     → 01034444444  (جلال عبدالله    - مخ وأعصاب)");
+  console.log("👩‍⚕️ Doctor 5     → 01035555555  (سارة سلامة      - أنف وأذن)");
   console.log("👨‍⚕️ Doctor 6     → 01036666666  (خالد أسامة      - الفم والأسنان)");
-  console.log("👩‍⚕️ Doctor 7     → 01037777777  (ندى حسين        - طب العيون)");
+  console.log("👩‍⚕️ Doctor 7     → 01037777777  (ندى حسين        - العين)");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("🗂️  Recep 1      → 01044444444  (نور طارق)");
   console.log("🗂️  Recep 2      → 01055555555  (عمر يوسف)");

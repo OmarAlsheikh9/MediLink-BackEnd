@@ -14,6 +14,12 @@ import { createDoctorSchema, updateDoctorSchema } from "../validationSchema/doct
 const doctorRouter = express.Router();
 
 doctorRouter.get("/", getAllDoctors);
+doctorRouter.get(
+  "/:id/available-slots",
+  authenticate,
+  restrictTo("patient", "receptionist"),
+  getAvailableSlots,
+);
 doctorRouter.get("/:id", getDoctor);
 
 //////////////////////////////////
@@ -27,9 +33,5 @@ doctorRouter.post(
 );
 doctorRouter.patch("/:id", restrictTo("admin"), validate(updateDoctorSchema), updateDoctor);
 doctorRouter.delete("/:id", restrictTo("admin"), deleteDoctor);
-doctorRouter.get(
-  "/:id/available-slots",
-  restrictTo("patient", "receptionist"),
-  getAvailableSlots,
-);
+
 export default doctorRouter;
