@@ -37,7 +37,7 @@ const doctorProfileSchema = new mongoose.Schema(
     // calculated automatically every time a review is added or deleted
     ratingsAverage: {
       type: Number,
-      default: 0,
+      default: 4.5,
       min: 0,
       max: 5,
       set: (val) => Math.round(val * 10) / 10, // 4.666 → 4.7
