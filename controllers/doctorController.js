@@ -200,7 +200,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
         "user.birthDate": 1,
         "user._id": 1,
         "user.active": 1,
-        "user.notes":1
+        "user.notes": 1,
       },
     },
     { $sort: { _id: 1 } },
@@ -239,8 +239,15 @@ export const updateDoctor = catchAsync(async (req, res, next) => {
   delete req.body.user;
 
   // Separate User fields from DoctorProfile fields
-  const { firstName, lastName, gender, birthDate, photo,notes, ...profileUpdates } =
-    req.body;
+  const {
+    firstName,
+    lastName,
+    gender,
+    birthDate,
+    photo,
+    notes,
+    ...profileUpdates
+  } = req.body;
   const userUpdates = {};
   if (firstName) userUpdates.firstName = firstName;
   if (lastName) userUpdates.lastName = lastName;
@@ -355,7 +362,8 @@ export const searchUserByPhone = catchAsync(async (req, res, next) => {
 export const getAvailableSlots = catchAsync(async (req, res, next) => {
   const doctorId = req.params.id;
   console.log("Getting available slots for doctor ID:", doctorId);
-  if(mongoose.Types.ObjectId.isValid(doctorId)) return next(new App)
+  if (!mongoose.Types.ObjectId.isValid(doctorId))
+    return next(new AppError("Invalid doctor ID", 400));
   const doctor = await DoctorProfile.findOne({ user: doctorId });
   if (!doctor) return next(new AppError("Doctor not found", 404));
 
