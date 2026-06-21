@@ -14,7 +14,6 @@ import {
   getAllAppointments,
   bookAppointmentByPatient,
   bookAppointmentByReceptionist,
-  getAvailableSlots,
 } from "../controllers/appointmentController.js";
 import { uploadMedicalFilesMiddleware } from "../middlewares/multer.js";
 import { uploadMultipleToImageKit } from "../utils/imageKit.js";
