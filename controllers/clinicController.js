@@ -1,7 +1,8 @@
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import Clinic from "../models/clinicModel.js";
-
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const getClinicInformations = catchAsync(async (req, res, next) => {
   const existingClinic = await Clinic.findOne();
   if (!existingClinic) {
@@ -33,6 +34,7 @@ export const updateClinicInformations = catchAsync(async (req, res, next) => {
       runValidators: true,
     },
   );
+  await Activity.create({user:user._id,action: ACTIONS.UPDATE_CLINIC_INFORMATION});
   res.status(200).json({
     status: "success",
     data: { clinic },
@@ -48,7 +50,7 @@ export const updateClinicSchedule = catchAsync(async (req, res, next) => {
     { schedule: req.body },
     { new: true, runValidators: true },
   );
-
+  await Activity.create({user:user._id,action: ACTIONS.UPDATE_CLINIC_SCHEDULE});
   res.status(200).json({
     status: "success",
     data: { schedule: clinic.schedule },

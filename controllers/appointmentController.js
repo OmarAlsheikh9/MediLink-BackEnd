@@ -12,6 +12,8 @@ import PrescriptionModel from "../models/prescriptionModel.js";
 import MedicalReportModel from "../models/medicalReportModel.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import Activity from "../models/activitiesModel.js";
+import { ACTIONS } from "../constant/activities.js";
 export const getMyAppointments = catchAsync(async (req, res, next) => {
   const { date, startDate, endDate, month, year } = req.validatedQuery;
 
@@ -255,9 +257,16 @@ export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
   const specialization = await getDoctorSpecialization(doctorId);
   if (!specialization)
     return next(new AppError("doctor has no specialization assigned", 400));
-  // check if patient book with this docotr in this day 
-  const oldAppointment = await Appointment.findOne({patient:patientId,doctor:doctorId,date});
-  if(oldAppointment) return next(new AppError("you can't book with same doctor in same day twice",400));
+  // check if patient book with this docotr in this day
+  const oldAppointment = await Appointment.findOne({
+    patient: patientId,
+    doctor: doctorId,
+    date,
+  });
+  if (oldAppointment)
+    return next(
+      new AppError("you can't book with same doctor in same day twice", 400),
+    );
   // 5) get uploaded file urls from ImageKit middleware (req.uploadedFiles)
   const medicalFiles = req.uploadedFiles?.map((f) => f.url) ?? [];
 
@@ -271,7 +280,10 @@ export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
     reason,
     medicalFiles,
   });
-
+  await Activity.create({
+    user: req.user._id,
+    action: ACTIONS.BOOK_APPOINTMENT,
+  });
   res.status(201).json({
     status: "success",
     data: { appointment: newAppointment },
@@ -425,9 +437,19 @@ export const bookAppointmentByReceptionist = catchAsync(
 
     if (existingPatient) {
       patientId = existingPatient._id;
-      // check if patient book with this docotr in this day 
-      const oldAppointment = await Appointment.findOne({patient:patientId,doctor:doctorId,date});
-      if(oldAppointment) return next(new AppError("you can't book with same doctor in same day twice",400));
+      // check if patient book with this docotr in this day
+      const oldAppointment = await Appointment.findOne({
+        patient: patientId,
+        doctor: doctorId,
+        date,
+      });
+      if (oldAppointment)
+        return next(
+          new AppError(
+            "you can't book with same doctor in same day twice",
+            400,
+          ),
+        );
     } else {
       const birthDate = new Date(year, month - 1, day);
 
@@ -475,7 +497,11 @@ export const bookAppointmentByReceptionist = catchAsync(
       fees: specialization.consultationFee,
       reason: "",
     });
-
+    const activites = [
+      { user: req.user._id, action: ACTIONS.BOOK_APPOINTMENT },
+      { user: req.user._id, action: ACTIONS.CREATE_PATIENT_USER },
+    ];
+    await Activity.insertMany(activites);
     res.status(201).json({
       status: "success",
       data: { appointment: newAppointment },
@@ -622,6 +648,10 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
 
   appointment.status = changeTo;
   await appointment.save();
+  await Activity.create({
+    user: req.user._id,
+    action: ACTIONS.CHANGE_APPOINTMENT_STATUS,
+  });
 
   res.status(200).json({
     status: "success",
@@ -649,7 +679,6 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
       new AppError("appointment not found or already completed", 404),
     );
 
-    
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -684,6 +713,14 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    const actions = [
+      { user: req.user._id, action: ACTIONS.COMPLETE_APPOINTMENT },
+      { user: req.user._id, action: ACTIONS.CREATE_PRESCRIPTION },
+      { user: req.user._id, action: ACTIONS.CREATE_MEDICAL_REPORT },
+    ];
+
+    await Activity.insertMany(actions);
 
     res.status(201).json({
       status: "success",

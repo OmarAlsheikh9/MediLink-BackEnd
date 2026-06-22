@@ -6,7 +6,8 @@ import PatientProfile from "../models/patientProfileModel.js";
 import { APIFeatures } from "../utils/apiFeatures.js";
 import imagekit from "../config/imagekit.js";
 import { processImage } from "../utils/imageService.js";
-
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const completeMyProfile = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
 
@@ -40,7 +41,7 @@ export const completeMyProfile = catchAsync(async (req, res, next) => {
   }
 
   await profile.save();
-
+  await Activity.create({user:user._id,action: ACTIONS.COMPLETE_PATIENT_PROFILE});
   res.status(200).json({
     status: "success",
     data: { profile },
@@ -178,6 +179,7 @@ export const deleteManyPatients = catchAsync(async (req, res, next) => {
     { _id: { $in: toDeactivateIds } },
     { $set: { active: false } },
   );
+  await Activity.create({user:user._id,action: ACTIONS.MAKE_PATIENTS_UNACTIVE});
 
   res.status(200).json({
     status: "success",
@@ -218,7 +220,7 @@ export const deletePatient = catchAsync(async (req, res, next) => {
     { _id: new mongoose.Types.ObjectId(id) },
     { $set: { active: false } },
   );
-
+  await Activity.create({user:user._id,action: ACTIONS.MAKE_PATIENTS_UNACTIVE});
   res.status(204).json({ status: "success" });
 });
 
@@ -232,6 +234,7 @@ export const changeActiveStatus = catchAsync(async (req, res, next) => {
   }
   pateint.active = !pateint.active;
   await pateint.save();
+  await Activity.create({user:user._id,action: ACTIONS.CHANGE_PATIENT_STATUS});
   res.status(200).json({
     status: "success",
     message: `Patient is now ${pateint.active ? "active" : "inactive"}`,
