@@ -5,10 +5,6 @@ export const createMedicalReportSchema = z.object({
     .string({ required_error: "patient id is required" })
     .regex(/^[a-f\d]{24}$/i, "invalid patient id"),
 
-  doctor: z
-    .string({ required_error: "doctor id is required" })
-    .regex(/^[a-f\d]{24}$/i, "invalid doctor id"),
-  
   appointment: z
     .string({ required_error: "appointment id is required" })
     .regex(/^[a-f\d]{24}$/i, "invalid appointment id"),
@@ -25,4 +21,3 @@ export const createMedicalReportSchema = z.object({
     .max(1000, "notes must be at most 1000 characters")
     .optional(),
 });
-

@@ -30,9 +30,6 @@ export const createPrescriptionSchema = z.object({
   patient: z
     .string({ required_error: "patient id is required" })
     .regex(/^[a-f\d]{24}$/i, "invalid patient id"),
-  doctor: z 
-    .string({ required_error: "doctor id is required" })
-    .regex(/^[a-f\d]{24}$/i, "invalid doctor id"),
   appointment: z
     .string({ required_error: "appointment id is required" })
     .regex(/^[a-f\d]{24}$/i, "invalid appointment id"),
@@ -41,4 +38,3 @@ export const createPrescriptionSchema = z.object({
     .array(medicineSchema, { required_error: "medicines are required" })
     .min(1, "prescription must have at least one medicine"),
 });
-
