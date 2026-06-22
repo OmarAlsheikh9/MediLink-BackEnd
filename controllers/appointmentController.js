@@ -666,7 +666,7 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
       { session },
     );
 
-    const [prescription] = await MedicalReportModel.create(
+    const [prescription] = await PrescriptionModel.create(
       [
         {
           patient: appointment.patient, // ← from appointment
