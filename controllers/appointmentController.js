@@ -255,7 +255,9 @@ export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
   const specialization = await getDoctorSpecialization(doctorId);
   if (!specialization)
     return next(new AppError("doctor has no specialization assigned", 400));
-
+  // check if patient book with this docotr in this day 
+  const oldAppointment = await Appointment.findOne({patient:patientId,doctor:doctorId,date});
+  if(oldAppointment) return next(new AppError("you can't book with same doctor in same day twice",400));
   // 5) get uploaded file urls from ImageKit middleware (req.uploadedFiles)
   const medicalFiles = req.uploadedFiles?.map((f) => f.url) ?? [];
 
@@ -423,6 +425,9 @@ export const bookAppointmentByReceptionist = catchAsync(
 
     if (existingPatient) {
       patientId = existingPatient._id;
+      // check if patient book with this docotr in this day 
+      const oldAppointment = await Appointment.findOne({patient:patientId,doctor:doctorId,date});
+      if(oldAppointment) return next(new AppError("you can't book with same doctor in same day twice",400));
     } else {
       const birthDate = new Date(year, month - 1, day);
 
@@ -632,11 +637,6 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(appointmentId))
     return next(new AppError("invalid appointment id", 400));
 
-  if (!diagnosis) return next(new AppError("diagnosis is required", 400));
-
-  if (!medicines || medicines.length === 0)
-    return next(new AppError("at least one medicine is required", 400));
-
   // patient comes from the appointment itself — not from the body
   const appointment = await Appointment.findOne({
     _id: appointmentId,
@@ -649,6 +649,7 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
       new AppError("appointment not found or already completed", 404),
     );
 
+    
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -659,7 +660,7 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
           patient: appointment.patient, // ← from appointment
           doctor: doctorId,
           appointment: appointment._id,
-          diagnosis: diagnosis, // ← from body
+          diagnosis, // ← from body
           notes,
         },
       ],
