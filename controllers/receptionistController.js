@@ -6,6 +6,8 @@ import User from "../models/userModel.js";
 import { APIFeatures } from "../utils/apiFeatures.js";
 import flattenAndRespond from "../utils/flattenAndRespond.js";
 import bcrypt from "bcryptjs";
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const createReceptionist = catchAsync(async (req, res, next) => {
   const {
     firstName,
@@ -65,7 +67,7 @@ export const createReceptionist = catchAsync(async (req, res, next) => {
     session.endSession();
 
     user.password = undefined;
-
+    await Activity.create({user:user._id,action: ACTIONS.CREATE_RECEPTIONIST});
     res.status(201).json({
       status: "success",
       data: { user, profile },
@@ -144,6 +146,8 @@ export const updateReceptionist = catchAsync(async (req, res, next) => {
   }
 
   const updatedReceptionist = await Receptionist.findById(id).populate("user");
+      await Activity.create({user:user._id,action: ACTIONS.UPDATE_RECEPTIONIST_PROFILE});
+
   res.status(200).json({
     status: "success",
     data: {
@@ -183,6 +187,7 @@ export const deleteReceptionist = catchAsync(async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+          await Activity.create({user:user._id,action: ACTIONS.MAKE_RECEPTIONIST_UNACTIVE});
 
     res.status(204).json({
       status: "success",

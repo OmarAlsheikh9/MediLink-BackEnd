@@ -7,7 +7,8 @@ import Appointment from "../models/appointmentModel.js";
 import Clinic from "../models/clinicModel.js";
 import flattenAndRespond from "../utils/flattenAndRespond.js";
 import bcrypt from "bcryptjs";
-
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 // ============================================================
 // HELPER FUNCTIONS (used only inside this file)
 // ============================================================
@@ -132,7 +133,7 @@ export const createDoctor = catchAsync(async (req, res, next) => {
     session.endSession();
 
     user.password = undefined;
-
+    await Activity.create({user:user._id,action: ACTIONS.CREATE_DOCTOR});
     res.status(201).json({
       status: "success",
       data: { user, profile },
@@ -303,7 +304,7 @@ export const updateDoctor = catchAsync(async (req, res, next) => {
 
     // 3. Re-fetch with pre(/^find/) population applied
     const populated = await DoctorProfile.findOne({ user: req.params.id });
-
+    await Activity.create({user:user._id,action: ACTIONS.UPDATE_DOCTOR_PROFILE});
     res.status(200).json({
       status: "success",
       data: { doctor: populated },
@@ -340,7 +341,7 @@ export const deleteDoctor = catchAsync(async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
-
+    await Activity.create({user:user._id,action: ACTIONS.MAKE_DOCTOR_UNACTIVE});
     res.status(204).json({ status: "success" });
   } catch (err) {
     await session.abortTransaction();

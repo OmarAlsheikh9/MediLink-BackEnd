@@ -7,6 +7,8 @@ import sendOTP from "../utils/sendOTP.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 const createToken = function (id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -27,7 +29,7 @@ const createSendToken = function (user, statusCode, res) {
     return res.cookie("jwt", token, cookieOptions).status(statusCode).json({
       status: "success",
       user,
-      token
+      token,
     });
   }
   // in dev
@@ -104,6 +106,11 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
     await client.del(`signUp:${phone}`);
+    const actions = [
+      { user: newUser._id, action: ACTIONS.SIGNUP },
+      { user: newUser._id, action: ACTIONS.CREATE_PATIENT_USER },
+    ];
+    await Activity.insertMany(actions);
     createSendToken(newUser, 201, res);
   } catch (err) {
     await session.abortTransaction();
@@ -114,10 +121,10 @@ export const verifyOTP = catchAsync(async (req, res, next) => {
 export const login = catchAsync(async (req, res, next) => {
   const { phone, password } = req.body;
   const user = await User.findOne({ phone }).select("+password");
-  if (!user || !(await user.correctPassword(password,user.password)))
+  if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError("invalid phone or password", 401));
-  if(!user.active)
-    return next(new AppError("User not active"));
+  if (!user.active) return next(new AppError("User not active"));
+  await Activity.create({user:user._id,action: ACTIONS.LOGIN})
   createSendToken(user, 200, res);
 });
 //* //////////////////////////Move restrictTo is middleware not controller ////
@@ -157,7 +164,6 @@ export const forgetpassword = catchAsync(async (req, res, next) => {
     // await sendOTP(phone, otp);
     console.log("OTP:", otp);
   }
-
   res.status(200).json({
     status: "success",
     message: "check your phone SMS we send OTP verification to you",
@@ -225,17 +231,18 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   await client.del(`forgetPassword:${phone}`);
-
+  await Activity.create({user:user._id,action: ACTIONS.RESET_PASSWORD})
   createSendToken(user, 200, res);
 });
 
 export const updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select("+password");
-  if (!user || !(await user.correctPassword(req.body.password,user.password)))
+  if (!user || !(await user.correctPassword(req.body.password, user.password)))
     return next(new AppError("the password or email is not correct ", 401));
   const hashedPassword = await bcrypt.hash(req.body.newpassword, 12);
   user.password = hashedPassword;
   await user.save();
+  await Activity.create({user:user._id,action: ACTIONS.UPDATE_PASSWORD})
   res.status(200).json({
     status: "success",
     message: "password change successfuly",

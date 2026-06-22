@@ -5,6 +5,8 @@ import AppError from "../utils/appError.js";
 import Specialization from "../models/specializationModel.js";
 import { APIFeatures } from "../utils/apiFeatures.js";
 import DoctorProfile from "../models/doctorProfileModel.js";
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const getAllSpecializations = catchAsync(async (req, res, next) => {
   const specializations = await Specialization.aggregate([
     {
@@ -51,6 +53,7 @@ export const createSpecialization = catchAsync(async (req, res, next) => {
     );
   }
   const specialization = await Specialization.create({ name, consultationFee });
+    await Activity.create({user:user._id,action: ACTIONS.CREATE_SPECIALIZATION});
 
   res.status(201).json({
     status: "success",
@@ -77,6 +80,7 @@ export const updateSpecialization = catchAsync(async (req, res, next) => {
       runValidators: true,
     },
   );
+      await Activity.create({user:user._id,action: ACTIONS.UPDATE_SPECIALIZATION});
 
   res.status(200).json({
     status: "success",
@@ -99,6 +103,7 @@ export const deleteSpecialization = catchAsync(async (req, res, next) => {
   );
 
   await specialization.deleteOne();
+        await Activity.create({user:user._id,action: ACTIONS.DELETE_SPECIALIZATION});
 
   res.status(200).json({
     status: "success",
