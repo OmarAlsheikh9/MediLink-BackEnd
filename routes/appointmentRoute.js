@@ -1,7 +1,12 @@
 import express from "express";
 import authnticate from "../middlewares/authenticate.js";
 import { restrictTo } from "../controllers/authController.js";
-import { appointmentQuerySchema,bookAppointmentSchema,bookAppointmentSchemaByRecption } from "../validationSchema/appointment.validation.js";
+import {
+  appointmentQuerySchema,
+  bookAppointmentSchema,
+  bookAppointmentSchemaByRecption,
+  completeAppointmentSchema,
+} from "../validationSchema/appointment.validation.js";
 import { validate, validateQuery } from "../middlewares/validate.js";
 import {
   getMyAppointments,
@@ -11,7 +16,8 @@ import {
   bookAppointmentByPatient,
   bookAppointmentByReceptionist,
   getCurrentPatientForDoctor,
-  changeAppointmentStatus
+  changeAppointmentStatus,
+  completeAppointment,
 } from "../controllers/appointmentController.js";
 import { uploadMedicalFilesMiddleware } from "../middlewares/multer.js";
 import { uploadMultipleToImageKit } from "../utils/imageKit.js";
@@ -48,11 +54,26 @@ router.get(
 router.get("/getPatientsForDoctor", restrictTo("doctor"), getPatientForDoctor);
 
 // for patient get all booked appoinments
+
 router.get(
   "/bookedAppointmentsForPatient",
   restrictTo("patient"),
   getBookedAppointmentsForPatient,
 );
-router.get("/getCurrentPatientForDoctor/:id",restrictTo("doctor"),getCurrentPatientForDoctor);
-router.patch("/changeStatus/:id",restrictTo("receptionist","doctor"),changeAppointmentStatus);
+router.post(
+  "/completeAppointment/:id",
+  restrictTo("doctor"),
+  validate(completeAppointmentSchema),
+  completeAppointment,
+);
+router.get(
+  "/getCurrentPatientForDoctor/:id",
+  restrictTo("doctor"),
+  getCurrentPatientForDoctor,
+);
+router.patch(
+  "/changeStatus/:id",
+  restrictTo("receptionist", "doctor"),
+  changeAppointmentStatus,
+);
 export default router;

@@ -8,6 +8,8 @@ import Clinic from "../models/clinicModel.js";
 import User from "../models/userModel.js";
 import PatientProfile from "../models/patientProfileModel.js";
 import AppError from "../utils/appError.js";
+import PrescriptionModel from "../models/prescriptionModel.js";
+import MedicalReportModel from "../models/medicalReportModel.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 export const getMyAppointments = catchAsync(async (req, res, next) => {
@@ -589,8 +591,7 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
     return next(new AppError("invalid id", 400));
 
   const appointment = await Appointment.findById(id);
-  if (!appointment)
-    return next(new AppError("appointment not found", 404));
+  if (!appointment) return next(new AppError("appointment not found", 404));
 
   const { changeTo } = req.body;
 
@@ -598,10 +599,17 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
     return next(new AppError("invalid status value", 400));
 
   if (appointment.status === "ملغى")
-    return next(new AppError("cannot change status of a cancelled appointment", 400));
+    return next(
+      new AppError("cannot change status of a cancelled appointment", 400),
+    );
 
   if (appointment.status === "مكتمل" && changeTo === "قيد الانتظار")
-    return next(new AppError("cannot revert a completed appointment back to pending", 400));
+    return next(
+      new AppError(
+        "cannot revert a completed appointment back to pending",
+        400,
+      ),
+    );
 
   if (changeTo === "ملغى") {
     appointment.cancelledBy = req.user.role;
@@ -614,4 +622,79 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
     status: "success",
     data: { appointment },
   });
+});
+export const completeAppointment = catchAsync(async (req, res, next) => {
+  const doctorId = req.user._id;
+  const  appointmentId  = req.params.id; // ← from param
+
+  const { diagnosis, notes, medicines } = req.body; // ← no appointmentId, no patient
+
+  if (!mongoose.Types.ObjectId.isValid(appointmentId))
+    return next(new AppError("invalid appointment id", 400));
+
+  if (!diagnosis) return next(new AppError("diagnosis is required", 400));
+
+  if (!medicines || medicines.length === 0)
+    return next(new AppError("at least one medicine is required", 400));
+
+  // patient comes from the appointment itself — not from the body
+  const appointment = await Appointment.findOne({
+    _id: appointmentId,
+    doctor: doctorId,
+    status: "قيد الانتظار",
+  });
+
+  if (!appointment)
+    return next(
+      new AppError("appointment not found or already completed", 404),
+    );
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const [medicalReport] = await MedicalReportModel.create(
+      [
+        {
+          patient: appointment.patient, // ← from appointment
+          doctor: doctorId,
+          appointment: appointment._id,
+          diagnosis,
+          notes,
+        },
+      ],
+      { session },
+    );
+
+    const [prescription] = await MedicalReportModel.create(
+      [
+        {
+          patient: appointment.patient, // ← from appointment
+          doctor: doctorId,
+          appointment: appointment._id,
+          medicines,
+        },
+      ],
+      { session },
+    );
+
+    appointment.status = "مكتمل";
+    await appointment.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      status: "success",
+      data: {
+        appointment,
+        medicalReport,
+        prescription,
+      },
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    return next(err);
+  }
 });

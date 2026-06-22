@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { egyptianPhone } from "./shared.validation.js";
 
-const dateString = z.string().refine(
-  (val) => !isNaN(Date.parse(val)),
-  "must be a valid date (YYYY-MM-DD)",
-);
+const dateString = z
+  .string()
+  .refine(
+    (val) => !isNaN(Date.parse(val)),
+    "must be a valid date (YYYY-MM-DD)",
+  );
 
 export const appointmentQuerySchema = z
   .object({
@@ -94,9 +96,12 @@ export const bookAppointmentSchema = z.object({
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "invalid date format, use YYYY-MM-DD",
     })
-    .refine((val) => new Date(val) >= new Date(new Date().setHours(0, 0, 0, 0)), {
-      message: "date cannot be in the past",
-    }),
+    .refine(
+      (val) => new Date(val) >= new Date(new Date().setHours(0, 0, 0, 0)),
+      {
+        message: "date cannot be in the past",
+      },
+    ),
 
   slotTime: z
     .string({ required_error: "slot time is required" })
@@ -120,13 +125,19 @@ export const bookAppointmentSchemaByRecption = z
       .refine((val) => !isNaN(Date.parse(val)), {
         message: "invalid date format, use YYYY-MM-DD",
       })
-      .refine((val) => new Date(val) >= new Date(new Date().setHours(0, 0, 0, 0)), {
-        message: "date cannot be in the past",
-      }),
+      .refine(
+        (val) => new Date(val) >= new Date(new Date().setHours(0, 0, 0, 0)),
+        {
+          message: "date cannot be in the past",
+        },
+      ),
 
     slotTime: z
       .string({ required_error: "slot time is required" })
-      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "slot time must be in HH:MM format"),
+      .regex(
+        /^([01]\d|2[0-3]):([0-5]\d)$/,
+        "slot time must be in HH:MM format",
+      ),
 
     firstName: z
       .string({ required_error: "first name is required" })
@@ -189,3 +200,19 @@ export const bookAppointmentSchemaByRecption = z
     },
     { message: "age must be between 1 and 120 years", path: ["year"] },
   );
+export const completeAppointmentSchema = z.object({
+  diagnosis: z
+    .string({ required_error: "diagnosis is required" })
+    .trim()
+    .min(2, "diagnosis must be at least 2 characters")
+    .max(200, "diagnosis must be at most 200 characters"),
+
+  notes: z
+    .string()
+    .trim()
+    .max(1000, "notes must be at most 1000 characters")
+    .optional(),
+  medicines: z
+    .array(medicineSchema, { required_error: "medicines are required" })
+    .min(1, "prescription must have at least one medicine"),
+});
