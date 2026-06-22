@@ -55,7 +55,7 @@ const prescriptionSchema = new mongoose.Schema(
 );
 
 prescriptionSchema.index({ patient: 1, createdAt: -1 });
-prescriptionSchema.index({ appointment: 1 });
+prescriptionSchema.index({ appointment: 1 },{ unique: true });
 
 const Prescription = mongoose.model("Prescription", prescriptionSchema);
 export default Prescription;

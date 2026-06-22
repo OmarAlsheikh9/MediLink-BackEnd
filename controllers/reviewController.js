@@ -3,7 +3,8 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import Review from "../models/reviewModel.js";
 import Appointment from "../models/appointmentModel.js";
-
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const createReview = catchAsync(async (req, res, next) => {
   const { stars, comment } = req.body;
   const patientId = req.user._id;
@@ -36,6 +37,7 @@ export const createReview = catchAsync(async (req, res, next) => {
   });
   await Appointment.findByIdAndUpdate(appointment._id, { isRated: true });
 
+  await Activity.create({ user: user._id, action: ACTIONS.CREATE_REVIEW });
   res.status(201).json({
     status: "success",
     data: { review },
@@ -69,6 +71,7 @@ export const deleteReview = catchAsync(async (req, res, next) => {
 
   if (!review)
     return next(new AppError("Review not found or not yours to delete", 404));
+  await Activity.create({ user: user._id, action: ACTIONS.DELETE_REVIEW });
 
   res.status(204).json({ status: "success" });
 });

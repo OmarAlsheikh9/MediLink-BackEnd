@@ -8,6 +8,8 @@ import AppError from "../utils/appError.js";
 import ImageKit from "imagekit";
 import sharp from "sharp";
 import mongoose from "mongoose";
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const getOneUser = getOne(User);
 export const getAllUsers = getAll(User);
 
@@ -40,6 +42,9 @@ export const changeUserActive = catchAsync(async (req, res, next) => {
   }
   user.active = !user.active;
   await user.save({ validateBeforeSave: false });
+  const actionName = user.role==="receptionist"?MAKE_RECEPTIONIST_UNACTIVE:user.role==="doctor"?MAKE_DOCTOR_UNACTIVE:MAKE_PATIENTS_UNACTIVE;
+  await Activity.create({user:user._id,action: ACTIONS[actionName]});
+
   res.status(204).json({
     status: "success",
   });
@@ -106,7 +111,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
     returnDocument: 'after',
     runValidators: true,
   });
-
+  await Activity.create({user:user._id,action: ACTIONS.UPDATE_PROFILE});
   res.status(200).json({
     status: "success",
     data: updateUser,

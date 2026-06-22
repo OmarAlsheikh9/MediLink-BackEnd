@@ -3,12 +3,15 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import Prescription from "../models/prescriptionModel.js";
 import User from "../models/userModel.js";
-
+import { ACTIONS } from "../constant/activities.js";
+import Activity from "../models/activitiesModel.js";
 export const createPrescription = catchAsync(async (req, res, next) => {
   const prescription = await Prescription.create({
     ...req.body,
     doctor: req.user._id,
   });
+    await Activity.create({user:user._id,action: ACTIONS.CREATE_RECEPTIONIST});
+
   res.status(201).json({
     status: "success",
     data: {

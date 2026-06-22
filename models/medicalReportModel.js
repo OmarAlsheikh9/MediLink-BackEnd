@@ -34,7 +34,7 @@ const medicalReportSchema = new mongoose.Schema(
 );
 
 medicalReportSchema.index({ patient: 1, createdAt: -1 });
-medicalReportSchema.index({ appointment: 1 });
+medicalReportSchema.index({ appointment: 1 }, { unique: true });
 
 const MedicalReport = mongoose.model("MedicalReport", medicalReportSchema);
 export default MedicalReport;
