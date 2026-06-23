@@ -513,7 +513,7 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
 
   const { changeTo } = req.body;
 
-  if (!["قيد الانتظار", "مكتمل", "ملغى"].includes(changeTo))
+  if (!["قيد الانتظار", "مكتمل", "ملغى","مؤكد"].includes(changeTo))
     return next(new AppError("invalid status value", 400));
 
   if (appointment.status === "ملغى")
@@ -521,7 +521,7 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
       new AppError("cannot change status of a cancelled appointment", 400),
     );
 
-  if (appointment.status === "مكتمل" && changeTo === "قيد الانتظار")
+  if (appointment.status === "مكتمل")
     return next(
       new AppError(
         "cannot revert a completed appointment back to pending",
@@ -666,7 +666,7 @@ export const getDoctorQueueByDoctor = catchAsync(async (req, res, next) => {
 
 export const getDoctorQueueByRecepionist = catchAsync(
   async (req, res, next) => {
-    const { doctorId } = req.body;
+    const { doctorId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(doctorId))
       return next(new AppError("Invalid id", 400));
     const doctor = await User.findById(doctorId);

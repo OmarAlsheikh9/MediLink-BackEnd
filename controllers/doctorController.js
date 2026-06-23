@@ -222,7 +222,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
         specialization: 1,
         ratingsAverage: 1,
         ratingsCount: 1,
-        completedAppointmentsCount:1,
+        completedAppointmentsCount: 1,
         "user.firstName": 1,
         "user.lastName": 1,
         "user.phone": 1,
@@ -451,13 +451,13 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
       time: slot,
       status: bookedSlotsForThisDay.includes(slot) ? "محجوز" : "متاح",
     }));
+
     return {
       date: dateString,
       day: getDayName(date),
       slots,
     };
   });
-
   res.status(200).json({
     status: "success",
     data: { slots: result },

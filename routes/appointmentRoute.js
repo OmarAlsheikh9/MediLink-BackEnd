@@ -67,7 +67,7 @@ router.get(
   getDoctorQueueByDoctor,
 );
 router.get(
-  "/getDoctorQueueByRecepionist",
+  "/getDoctorQueueByRecepionist/:doctorId",
   restrictTo("receptionist"),
   getDoctorQueueByRecepionist,
 );
