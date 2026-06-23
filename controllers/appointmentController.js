@@ -666,7 +666,7 @@ export const getDoctorQueueByDoctor = catchAsync(async (req, res, next) => {
 
 export const getDoctorQueueByRecepionist = catchAsync(
   async (req, res, next) => {
-    const { doctorId } = req.body;
+    const { doctorId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(doctorId))
       return next(new AppError("Invalid id", 400));
     const doctor = await User.findById(doctorId);
