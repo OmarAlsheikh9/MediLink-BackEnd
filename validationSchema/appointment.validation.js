@@ -96,21 +96,11 @@ export const bookAppointmentSchema = z.object({
     .string({ required_error: "date is required" })
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "invalid date format, use YYYY-MM-DD",
-    })
-    .refine(
-      (val) => {
-        const todayStr = new Date().toISOString().split("T"); // e.g., "2026-06-23"
-        
-        return val >= todayStr;
-      },
-      {
-        message: "date cannot be in the past",
-      },
-    ),
+    }),
 
-  slotTime: z
-    .string({ required_error: "slot time is required" })
-    .regex(/^(\d|2[0-3]):([0-5]\d)$/, "slot time must be in HH:MM format"),
+slotTime: z
+  .string({ required_error: "slot time is required" })
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "slot time must be in HH:MM format"),
 
   reason: z
     .string({ required_error: "reason is required" })
@@ -129,24 +119,11 @@ export const bookAppointmentSchemaByRecption = z
     .string({ required_error: "date is required" })
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "invalid date format, use YYYY-MM-DD",
-    })
-    .refine(
-      (val) => {
-        const todayStr = new Date().toISOString().split("T"); 
-        
-        return val >= todayStr;
-      },
-      {
-        message: "date cannot be in the past",
-      },
-    ),
+    }),
 
-    slotTime: z
-      .string({ required_error: "slot time is required" })
-      .regex(
-        /^([01]\d|2[0-3]):([0-5]\d)$/,
-        "slot time must be in HH:MM format",
-      ),
+  slotTime: z
+    .string({ required_error: "slot time is required" })
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "slot time must be in HH:MM format"),
 
     firstName: z
       .string({ required_error: "first name is required" })
