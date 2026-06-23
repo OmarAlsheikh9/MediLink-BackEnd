@@ -645,7 +645,8 @@ export const getAppointmentsCount = catchAsync(async (req, res, next) => {
   };
 
   stats.forEach((item) => {
-    if (item._id === "مكتمل") result.completedAppointments = item.count;
+    if (item._id === "مكتمل" || item._id === "مؤكد")
+      result.completedAppointments = item.count;
     if (item._id === "ملغى") result.cancelledAppointments = item.count;
     if (item._id === "قيد الانتظار") result.pendingAppointments = item.count;
     result.totalAppointments += item.count;
