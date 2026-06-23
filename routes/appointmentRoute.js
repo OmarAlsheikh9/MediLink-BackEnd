@@ -19,8 +19,12 @@ import {
   changeAppointmentStatus,
   completeAppointment,
   getAppointmentsCount,
+<<<<<<< HEAD
   getDoctorQueueByDoctor,
   getDoctorQueueByRecepionist
+=======
+  cancelAppointment,
+>>>>>>> ec5a3c9126ea295a63113ab1b7113831baf348f6
 } from "../controllers/appointmentController.js";
 import { uploadMedicalFilesMiddleware } from "../middlewares/multer.js";
 import { uploadMultipleToImageKit } from "../utils/imageKit.js";
@@ -41,7 +45,11 @@ router.post(
 
   bookAppointmentByPatient,
 );
-router.get("/getAppointmentsCount/:id",restrictTo("admin"),getAppointmentsCount);
+router.get(
+  "/getAppointmentsCount/:id",
+  restrictTo("admin"),
+  getAppointmentsCount,
+);
 router.post(
   "/bookByReceptionist",
   restrictTo("receptionist"),
@@ -80,5 +88,10 @@ router.patch(
   "/changeStatus/:id",
   restrictTo("receptionist", "doctor"),
   changeAppointmentStatus,
+);
+router.patch(
+  "/cancelAppointment/:id",
+  restrictTo("patient", "receptionist"),
+  cancelAppointment,
 );
 export default router;

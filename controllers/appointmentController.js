@@ -59,7 +59,7 @@ export const getMyAppointments = catchAsync(async (req, res, next) => {
 export const getAllAppointments = catchAsync(async (req, res, next) => {
   const appointments = await Appointment.find()
     .populate("patient", "firstName lastName phone photo")
-    .populate("doctor",  "firstName lastName phone photo");
+    .populate("doctor", "firstName lastName phone photo");
 
   res.status(200).json({
     status: "success",
@@ -71,7 +71,7 @@ export const getAllAppointments = catchAsync(async (req, res, next) => {
 export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user._id;
   const { search } = req.query;
-  const page  = Number(req.query.page)  || 1;
+  const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
 
   const patients = await Appointment.aggregate([
@@ -87,22 +87,24 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
     },
     { $unwind: "$patient" },
     ...(search
-      ? [{
-          $match: {
-            $or: [
-              { "patient.firstName": { $regex: search, $options: "i" } },
-              { "patient.lastName":  { $regex: search, $options: "i" } },
-            ],
+      ? [
+          {
+            $match: {
+              $or: [
+                { "patient.firstName": { $regex: search, $options: "i" } },
+                { "patient.lastName": { $regex: search, $options: "i" } },
+              ],
+            },
           },
-        }]
+        ]
       : []),
     {
       $project: {
         _id: 0,
-        patientId:  "$_id",
-        firstName:  "$patient.firstName",
-        lastName:   "$patient.lastName",
-        phone:      "$patient.phone",
+        patientId: "$_id",
+        firstName: "$patient.firstName",
+        lastName: "$patient.lastName",
+        phone: "$patient.phone",
         visitCount: 1,
       },
     },
@@ -117,82 +119,91 @@ export const getPatientForDoctor = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getBookedAppointmentsForPatient = catchAsync(async (req, res, next) => {
-  const patientId = req.user._id;
-  const { search, page = 1, limit = 50 } = req.query;
+export const getBookedAppointmentsForPatient = catchAsync(
+  async (req, res, next) => {
+    const patientId = req.user._id;
+    const { search, page = 1, limit = 50 } = req.query;
 
-  const appointments = await Appointment.aggregate([
-    { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
-    {
-      $lookup: {
-        from: "users",
-        let: { doctorId: "$doctor" },
-        pipeline: [
-          { $match: { $expr: { $eq: ["$_id", "$$doctorId"] } } },
-          { $project: { firstName: 1, lastName: 1, photo: 1 } },
-        ],
-        as: "doctor",
+    const appointments = await Appointment.aggregate([
+      { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
+      {
+        $lookup: {
+          from: "users",
+          let: { doctorId: "$doctor" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$doctorId"] } } },
+            { $project: { firstName: 1, lastName: 1, photo: 1 } },
+          ],
+          as: "doctor",
+        },
       },
-    },
-    { $unwind: "$doctor" },
-    {
-      $lookup: {
-        from: "doctorprofiles",
-        let: { doctorUserId: "$doctor._id" },
-        pipeline: [
-          { $match: { $expr: { $eq: ["$user", "$$doctorUserId"] } } },
-          {
-            $lookup: {
-              from: "specializations",
-              localField: "specialization",
-              foreignField: "_id",
-              as: "specialization",
+      { $unwind: "$doctor" },
+      {
+        $lookup: {
+          from: "doctorprofiles",
+          let: { doctorUserId: "$doctor._id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$user", "$$doctorUserId"] } } },
+            {
+              $lookup: {
+                from: "specializations",
+                localField: "specialization",
+                foreignField: "_id",
+                as: "specialization",
+              },
             },
-          },
-          { $unwind: { path: "$specialization", preserveNullAndEmptyArrays: true } },
-          { $project: { "specialization.name": 1 } },
-        ],
-        as: "doctorProfile",
+            {
+              $unwind: {
+                path: "$specialization",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            { $project: { "specialization.name": 1 } },
+          ],
+          as: "doctorProfile",
+        },
       },
-    },
-    { $unwind: { path: "$doctorProfile", preserveNullAndEmptyArrays: true } },
-    ...(search
-      ? [{
-          $match: {
-            $or: [
-              { "doctor.firstName": { $regex: search, $options: "i" } },
-              { "doctor.lastName":  { $regex: search, $options: "i" } },
-            ],
-          },
-        }]
-      : []),
-    { $sort: { date: -1 } },
-    { $skip: (Number(page) - 1) * Number(limit) },
-    { $limit: Number(limit) },
-    {
-      $project: {
-        _id: 1,
-        date: 1,
-        slotTime: 1,
-        status: 1,
-        fees: 1,
-        cancelledBy: 1,
-        isRated: 1,
-        "doctor._id": 1,
-        "doctor.firstName": 1,
-        "doctor.lastName": 1,
-        "doctor.photo": 1,
-        "doctorProfile.specialization.name": 1,
+      { $unwind: { path: "$doctorProfile", preserveNullAndEmptyArrays: true } },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "doctor.firstName": { $regex: search, $options: "i" } },
+                  { "doctor.lastName": { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+      { $sort: { date: -1 } },
+      { $skip: (Number(page) - 1) * Number(limit) },
+      { $limit: Number(limit) },
+      {
+        $project: {
+          _id: 1,
+          date: 1,
+          slotTime: 1,
+          status: 1,
+          fees: 1,
+          cancelledBy: 1,
+          isRated: 1,
+          "doctor._id": 1,
+          "doctor.firstName": 1,
+          "doctor.lastName": 1,
+          "doctor.photo": 1,
+          "doctorProfile.specialization.name": 1,
+        },
       },
-    },
-  ]);
+    ]);
 
-  res.status(200).json({
-    status: "success",
-    length: appointments.length,
-    data: { appointments },
-  });
-});
+    res.status(200).json({
+      status: "success",
+      length: appointments.length,
+      data: { appointments },
+    });
+  },
+);
 
 export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
   const patientId = req.user.id;
@@ -219,17 +230,33 @@ export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
   // patient can't book same doctor twice on same day
   const sameDoctorOk = await checkSameDoctorSameDay(patientId, doctorId, date);
   if (!sameDoctorOk)
-    return next(new AppError("you already have an appointment with this doctor today", 400));
+    return next(
+      new AppError(
+        "you already have an appointment with this doctor today",
+        400,
+      ),
+    );
 
   // patient can't book same specialization twice on same day
-  const sameSpecOk = await checkSameSpecializationSameDay(patientId, doctorId, date);
+  const sameSpecOk = await checkSameSpecializationSameDay(
+    patientId,
+    doctorId,
+    date,
+  );
   if (!sameSpecOk)
-    return next(new AppError("you already have an appointment with a doctor of the same specialization today", 400));
+    return next(
+      new AppError(
+        "you already have an appointment with a doctor of the same specialization today",
+        400,
+      ),
+    );
 
   // patient can't have overlapping slot on same day
   const slotOk = await checkPatientSlotConflict(patientId, date, slotTime);
   if (!slotOk)
-    return next(new AppError("you already have an appointment at this time", 400));
+    return next(
+      new AppError("you already have an appointment at this time", 400),
+    );
 
   // get uploaded file urls from ImageKit middleware
   const medicalFiles = req.uploadedFiles?.map((f) => f.url) ?? [];
@@ -256,95 +283,140 @@ export const bookAppointmentByPatient = catchAsync(async (req, res, next) => {
   });
 });
 
-export const bookAppointmentByReceptionist = catchAsync(async (req, res, next) => {
-  const { doctorId, date, slotTime, firstName, lastName, phone, gender, day, month, year } = req.body;
+export const bookAppointmentByReceptionist = catchAsync(
+  async (req, res, next) => {
+    const {
+      doctorId,
+      date,
+      slotTime,
+      firstName,
+      lastName,
+      phone,
+      gender,
+      day,
+      month,
+      year,
+    } = req.body;
 
-  // validate doctor
-  const doctor = await User.findOne({ _id: doctorId, role: "doctor" });
-  if (!doctor) return next(new AppError("doctor not found", 404));
+    // validate doctor
+    const doctor = await User.findOne({ _id: doctorId, role: "doctor" });
+    if (!doctor) return next(new AppError("doctor not found", 404));
 
-  // check doctor availability
-  const isAvailable = await isDoctorAvailable(doctorId, date, slotTime);
-  if (!isAvailable)
-    return next(new AppError("doctor isn't available in this time", 400));
+    // check doctor availability
+    const isAvailable = await isDoctorAvailable(doctorId, date, slotTime);
+    if (!isAvailable)
+      return next(new AppError("doctor isn't available in this time", 400));
 
-  // get specialization and fees
-  const specialization = await getDoctorSpecialization(doctorId);
-  if (!specialization)
-    return next(new AppError("doctor has no specialization assigned", 400));
+    // get specialization and fees
+    const specialization = await getDoctorSpecialization(doctorId);
+    if (!specialization)
+      return next(new AppError("doctor has no specialization assigned", 400));
 
-  // find patient by phone or create new one
-  const existingPatient = await User.findOne({ phone });
-  let patientId;
+    // find patient by phone or create new one
+    const existingPatient = await User.findOne({ phone });
+    let patientId;
 
-  if (existingPatient) {
-    patientId = existingPatient._id;
+    if (existingPatient) {
+      patientId = existingPatient._id;
 
-    // run same checks as patient booking
-    const sameDoctorOk = await checkSameDoctorSameDay(patientId, doctorId, date);
-    if (!sameDoctorOk)
-      return next(new AppError("this patient already has an appointment with this doctor today", 400));
-
-    const sameSpecOk = await checkSameSpecializationSameDay(patientId, doctorId, date);
-    if (!sameSpecOk)
-      return next(new AppError("this patient already has an appointment with a doctor of the same specialization today", 400));
-
-    const slotOk = await checkPatientSlotConflict(patientId, date, slotTime);
-    if (!slotOk)
-      return next(new AppError("this patient already has an appointment at this time", 400));
-
-  } else {
-    // create new patient + profile in transaction
-    const birthDate     = new Date(year, month - 1, day);
-    const tempPassword  = crypto.randomBytes(8).toString("hex");
-    const hashedPassword = await bcrypt.hash(tempPassword, 12);
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      const [newPatient] = await User.create(
-        [{ firstName, lastName, phone, gender, birthDate, role: "patient", password: hashedPassword, isPreHashed: true }],
-        { session },
+      // run same checks as patient booking
+      const sameDoctorOk = await checkSameDoctorSameDay(
+        patientId,
+        doctorId,
+        date,
       );
+      if (!sameDoctorOk)
+        return next(
+          new AppError(
+            "this patient already has an appointment with this doctor today",
+            400,
+          ),
+        );
 
-      await PatientProfile.create([{ user: newPatient._id }], { session });
+      const sameSpecOk = await checkSameSpecializationSameDay(
+        patientId,
+        doctorId,
+        date,
+      );
+      if (!sameSpecOk)
+        return next(
+          new AppError(
+            "this patient already has an appointment with a doctor of the same specialization today",
+            400,
+          ),
+        );
 
-      await session.commitTransaction();
-      session.endSession();
+      const slotOk = await checkPatientSlotConflict(patientId, date, slotTime);
+      if (!slotOk)
+        return next(
+          new AppError(
+            "this patient already has an appointment at this time",
+            400,
+          ),
+        );
+    } else {
+      // create new patient + profile in transaction
+      const birthDate = new Date(year, month - 1, day);
+      const tempPassword = crypto.randomBytes(8).toString("hex");
+      const hashedPassword = await bcrypt.hash(tempPassword, 12);
 
-      patientId = newPatient._id;
+      const session = await mongoose.startSession();
+      session.startTransaction();
 
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(err);
+      try {
+        const [newPatient] = await User.create(
+          [
+            {
+              firstName,
+              lastName,
+              phone,
+              gender,
+              birthDate,
+              role: "patient",
+              password: hashedPassword,
+              isPreHashed: true,
+            },
+          ],
+          { session },
+        );
+
+        await PatientProfile.create([{ user: newPatient._id }], { session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        patientId = newPatient._id;
+      } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        return next(err);
+      }
     }
-  }
 
-  // create appointment outside transaction — independent operation
-  const newAppointment = await Appointment.create({
-    patient: patientId,
-    doctor: doctorId,
-    date,
-    slotTime,
-    fees: specialization.consultationFee,
-    reason: "",
-  });
+    // create appointment outside transaction — independent operation
+    const newAppointment = await Appointment.create({
+      patient: patientId,
+      doctor: doctorId,
+      date,
+      slotTime,
+      fees: specialization.consultationFee,
+      reason: "",
+    });
 
-  await Activity.insertMany([
-    { user: req.user._id, action: ACTIONS.BOOK_APPOINTMENT},
-    { user: req.user._id, action: ACTIONS.CREATE_PATIENT_USER },
-  ]);
+    await Activity.insertMany([
+      { user: req.user._id, action: ACTIONS.BOOK_APPOINTMENT },
+      { user: req.user._id, action: ACTIONS.CREATE_PATIENT_USER },
+    ]);
 
-  res.status(201).json({
-    status: "success",
-    data: { appointment: newAppointment },
-  });
-});
+    res.status(201).json({
+      status: "success",
+      data: { appointment: newAppointment },
+    });
+  },
+);
 
 export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
-  const doctorId  = req.user.id;
+  const doctorId = req.user.id;
   const patientId = req.params.id;
 
   if (!mongoose.Types.ObjectId.isValid(patientId))
@@ -356,16 +428,20 @@ export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
     role: "patient",
   });
 
-  if (!patientUser) return next(new AppError("no patient found with this id", 404));
-  if (!patientUser.active) return next(new AppError("this patient account is deactivated", 403));
+  if (!patientUser)
+    return next(new AppError("no patient found with this id", 404));
+  if (!patientUser.active)
+    return next(new AppError("this patient account is deactivated", 403));
 
-  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-  const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
 
   const result = await Appointment.aggregate([
     {
       $match: {
-        doctor:  new mongoose.Types.ObjectId(doctorId),
+        doctor: new mongoose.Types.ObjectId(doctorId),
         patient: new mongoose.Types.ObjectId(patientId),
         date:    { $gte: todayStart, $lte: todayEnd },
         status:  "مؤكد",
@@ -391,12 +467,27 @@ export const getCurrentPatientForDoctor = catchAsync(async (req, res, next) => {
     { $unwind: { path: "$patientProfile", preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        date: 1, slotTime: 1, status: 1, reason: 1, fees: 1, medicalFiles: 1, createdAt: 1,
-        "patient._id": 1, "patient.firstName": 1, "patient.lastName": 1,
-        "patient.phone": 1, "patient.photo": 1, "patient.gender": 1, "patient.birthDate": 1,
-        "patientProfile.bloodType": 1, "patientProfile.tall": 1, "patientProfile.weight": 1,
-        "patientProfile.smoking": 1, "patientProfile.allergies": 1,
-        "patientProfile.chronicConditions": 1, "patientProfile.chronicMedications": 1,
+        date: 1,
+        slotTime: 1,
+        status: 1,
+        reason: 1,
+        fees: 1,
+        medicalFiles: 1,
+        createdAt: 1,
+        "patient._id": 1,
+        "patient.firstName": 1,
+        "patient.lastName": 1,
+        "patient.phone": 1,
+        "patient.photo": 1,
+        "patient.gender": 1,
+        "patient.birthDate": 1,
+        "patientProfile.bloodType": 1,
+        "patientProfile.tall": 1,
+        "patientProfile.weight": 1,
+        "patientProfile.smoking": 1,
+        "patientProfile.allergies": 1,
+        "patientProfile.chronicConditions": 1,
+        "patientProfile.chronicMedications": 1,
         "patientProfile.medicalFiles": 1,
       },
     },
@@ -426,13 +517,19 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
     return next(new AppError("invalid status value", 400));
 
   if (appointment.status === "ملغى")
-    return next(new AppError("cannot change status of a cancelled appointment", 400));
+    return next(
+      new AppError("cannot change status of a cancelled appointment", 400),
+    );
 
   if (appointment.status === "مكتمل" && changeTo === "قيد الانتظار")
-    return next(new AppError("cannot revert a completed appointment back to pending", 400));
+    return next(
+      new AppError(
+        "cannot revert a completed appointment back to pending",
+        400,
+      ),
+    );
 
-  if (changeTo === "ملغى")
-    appointment.cancelledBy = req.user.role;
+  if (changeTo === "ملغى") appointment.cancelledBy = req.user.role;
 
   appointment.status = changeTo;
   await appointment.save();
@@ -449,7 +546,7 @@ export const changeAppointmentStatus = catchAsync(async (req, res, next) => {
 });
 
 export const completeAppointment = catchAsync(async (req, res, next) => {
-  const doctorId      = req.user._id;
+  const doctorId = req.user._id;
   const appointmentId = req.params.id;
   const { diagnosis, notes, medicines } = req.body;
 
@@ -463,19 +560,36 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
   });
 
   if (!appointment)
-    return next(new AppError("appointment not found or already completed", 404));
+    return next(
+      new AppError("appointment not found or already completed", 404),
+    );
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const [medicalReport] = await MedicalReportModel.create(
-      [{ patient: appointment.patient, doctor: doctorId, appointment: appointment._id, diagnosis, notes }],
+      [
+        {
+          patient: appointment.patient,
+          doctor: doctorId,
+          appointment: appointment._id,
+          diagnosis,
+          notes,
+        },
+      ],
       { session },
     );
 
     const [prescription] = await PrescriptionModel.create(
-      [{ patient: appointment.patient, doctor: doctorId, appointment: appointment._id, medicines }],
+      [
+        {
+          patient: appointment.patient,
+          doctor: doctorId,
+          appointment: appointment._id,
+          medicines,
+        },
+      ],
       { session },
     );
 
@@ -488,7 +602,7 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
     const actions = [
       { user: req.user._id, action: ACTIONS.COMPLETE_APPOINTMENT },
       { user: req.user._id, action: ACTIONS.CREATE_PRESCRIPTION },
-      { user: req.user._id, action: ACTIONS.CREATE_MEDICAL_REPORT }
+      { user: req.user._id, action: ACTIONS.CREATE_MEDICAL_REPORT },
     ];
 
     await Activity.insertMany(actions);
@@ -497,7 +611,6 @@ export const completeAppointment = catchAsync(async (req, res, next) => {
       status: "success",
       data: { appointment, medicalReport, prescription },
     });
-
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -522,16 +635,16 @@ export const getAppointmentsCount = catchAsync(async (req, res, next) => {
   ]);
 
   const result = {
-    totalAppointments:     0,
+    totalAppointments: 0,
     completedAppointments: 0,
     cancelledAppointments: 0,
-    pendingAppointments:   0,
+    pendingAppointments: 0,
   };
 
   stats.forEach((item) => {
-    if (item._id === "مكتمل")        result.completedAppointments = item.count;
-    if (item._id === "ملغى")         result.cancelledAppointments = item.count;
-    if (item._id === "قيد الانتظار") result.pendingAppointments   = item.count;
+    if (item._id === "مكتمل") result.completedAppointments = item.count;
+    if (item._id === "ملغى") result.cancelledAppointments = item.count;
+    if (item._id === "قيد الانتظار") result.pendingAppointments = item.count;
     result.totalAppointments += item.count;
   });
 
@@ -541,6 +654,7 @@ export const getAppointmentsCount = catchAsync(async (req, res, next) => {
   });
 });
 
+<<<<<<< HEAD
 export const getDoctorQueueByDoctor = catchAsync(async (req, res, next) => {
   const doctorId = req.user._id;
   const queue = await getQueue(doctorId,"مؤكد");
@@ -611,3 +725,67 @@ const getQueue = catchAsync (async (doctorId,statusValue)=>{
   ]);
   return queue;
 })
+=======
+export const cancelAppointment = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return next(new AppError("Invalid id", 400));
+
+  const appointment = await Appointment.findById(id);
+  if (!appointment) return next(new AppError("Appointment not found", 404));
+
+  // 1. Check ownership — receptionists can cancel any, patients only their own
+  if (
+    req.user.role === "patient" &&
+    appointment.patient.toString() !== req.user._id.toString()
+  )
+    return next(
+      new AppError("You are not allowed to cancel this appointment", 403),
+    );
+
+  // 2. Guard against double-cancellation before touching anything else
+  if (appointment.status === "ملغى")
+    return next(new AppError("Appointment is already cancelled", 400));
+
+  // 3. Enforce the 6-hour cancellation window
+  const now = new Date();
+  const appointmentDate = new Date(appointment.slotTime);
+  const diffInHours =
+    (appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (diffInHours < 6)
+    return next(
+      new AppError(
+        "Cannot cancel an appointment less than 6 hours before it",
+        400,
+      ),
+    );
+
+  // 4. Atomically update status and log activity
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    appointment.status = "ملغى";
+    await appointment.save({ session });
+
+    await Activity.create(
+      [{ user: req.user._id, action: ACTIONS.CANCEL_APPOINTMENT }],
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    res.status(200).json({
+      status: "success",
+      data: { appointment },
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    return next(err);
+  } finally {
+    session.endSession();
+  }
+});
+>>>>>>> ec5a3c9126ea295a63113ab1b7113831baf348f6
