@@ -438,6 +438,10 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
     status: { $ne: "ملغى" },
   }).select("date slotTime");
 
+  const now = new Date();
+  const todayString = formatDate(now); 
+  const currentTimeString = now.toTimeString().split(" ").substring(0, 5); 
+
   const result = workingDates.map((date) => {
     const dateString = formatDate(date);
 
@@ -447,10 +451,21 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
       .filter((appt) => formatDate(new Date(appt.date)) === dateString)
       .map((appt) => appt.slotTime);
 
-    const slots = allSlots.map((slot) => ({
-      time: slot,
-      status: bookedSlotsForThisDay.includes(slot) ? "محجوز" : "متاح",
-    }));
+    const slots = allSlots.map((slot) => {
+      let status = "متاح";
+
+      if (bookedSlotsForThisDay.includes(slot)) {
+        status = "محجوز";
+      } else if (dateString === todayString && slot < currentTimeString) {
+        status = "غير متاح"; 
+      }
+
+      return {
+        time: slot,
+        status,
+      };
+    });
+
     return {
       date: dateString,
       day: getDayName(date),
