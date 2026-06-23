@@ -91,7 +91,7 @@ export const getAllReceptionist = catchAsync(async (req, res, next) => {
 export const getReceptionist = catchAsync(async (req, res, next) => {
   const receptionist = await Receptionist.findById(req.params.id).populate({
     path: "user",
-    select: "-_id -password",
+    select: "_id -password",
   });
 
   if (!receptionist) return next(new AppError("receptionist not found", 404));
