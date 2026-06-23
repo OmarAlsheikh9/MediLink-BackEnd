@@ -44,7 +44,7 @@ router.post(
 );
 router.get(
   "/getAppointmentsCount/:id",
-  restrictTo("admin"),
+  restrictTo("admin", "receptionist"),
   getAppointmentsCount,
 );
 router.post(
