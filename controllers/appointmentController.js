@@ -667,10 +667,11 @@ export const getDoctorQueueByDoctor = catchAsync(async (req, res, next) => {
 export const getDoctorQueueByRecepionist = catchAsync(async (req, res, next)=>{
   const {doctorId} = req.body;
   if(!mongoose.Types.ObjectId.isValid(doctorId)) return next(new AppError("Invalid id",400));
-  const doctor = await User.findbyId(doctorId);
+  const doctor = await User.findById(doctorId);
   if(!doctor) return next(new AppError("Doctor not found",404));
 
   const queue = await getQueue(doctorId,"قيد الانتظار");
+  console.log(queue);
   res.status(200).json({
     status: "success",
     length: queue.length,
@@ -678,7 +679,7 @@ export const getDoctorQueueByRecepionist = catchAsync(async (req, res, next)=>{
   });
 })
 
-const getQueue = catchAsync (async (doctorId,statusValue)=>{
+const getQueue = async (doctorId,statusValue)=>{
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
 
@@ -723,7 +724,7 @@ const getQueue = catchAsync (async (doctorId,statusValue)=>{
     },
   ]);
   return queue;
-})
+}
 export const cancelAppointment = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
