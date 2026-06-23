@@ -19,12 +19,8 @@ import {
   changeAppointmentStatus,
   completeAppointment,
   getAppointmentsCount,
-<<<<<<< HEAD
   getDoctorQueueByDoctor,
   getDoctorQueueByRecepionist
-=======
-  cancelAppointment,
->>>>>>> ec5a3c9126ea295a63113ab1b7113831baf348f6
 } from "../controllers/appointmentController.js";
 import { uploadMedicalFilesMiddleware } from "../middlewares/multer.js";
 import { uploadMultipleToImageKit } from "../utils/imageKit.js";
