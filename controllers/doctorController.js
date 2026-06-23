@@ -222,7 +222,7 @@ export const getAllDoctors = catchAsync(async (req, res, next) => {
         specialization: 1,
         ratingsAverage: 1,
         ratingsCount: 1,
-        completedAppointmentsCount:1,
+        completedAppointmentsCount: 1,
         "user.firstName": 1,
         "user.lastName": 1,
         "user.phone": 1,
@@ -438,10 +438,6 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
     status: { $ne: "ملغى" },
   }).select("date slotTime");
 
-  const now = new Date();
-  const todayString = formatDate(now); 
-  const currentTimeString = now.toTimeString().split(" ").substring(0, 5); 
-
   const result = workingDates.map((date) => {
     const dateString = formatDate(date);
 
@@ -451,20 +447,10 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
       .filter((appt) => formatDate(new Date(appt.date)) === dateString)
       .map((appt) => appt.slotTime);
 
-    const slots = allSlots.map((slot) => {
-      let status = "متاح";
-
-      if (bookedSlotsForThisDay.includes(slot)) {
-        status = "محجوز";
-      } else if (dateString === todayString && slot < currentTimeString) {
-        status = "غير متاح"; 
-      }
-
-      return {
-        time: slot,
-        status,
-      };
-    });
+    const slots = allSlots.map((slot) => ({
+      time: slot,
+      status: bookedSlotsForThisDay.includes(slot) ? "محجوز" : "متاح",
+    }));
 
     return {
       date: dateString,
@@ -472,7 +458,6 @@ export const getAvailableSlots = catchAsync(async (req, res, next) => {
       slots,
     };
   });
-
   res.status(200).json({
     status: "success",
     data: { slots: result },
