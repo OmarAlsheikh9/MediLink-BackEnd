@@ -86,10 +86,7 @@ export const getAllReceptionist = catchAsync(async (req, res, next) => {
   flattenAndRespond(res, { key: "receptionists", data: receptionists });
 });
 export const getReceptionist = catchAsync(async (req, res, next) => {
-  const receptionist = await Receptionist.findById(req.params.id).populate({
-    path: "user",
-    select: "-_id",
-  });
+  const receptionist = await Receptionist.findById(req.params.id);
 
   if (!receptionist) return next(new AppError("receptionist not found", 404));
 
@@ -187,7 +184,7 @@ export const deleteReceptionist = catchAsync(async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
-          await Activity.create({user:req.user._id,action: ACTIONS.MAKE_RECEPTIONIST_UNACTIVE});
+    await Activity.create({user:req.user._id,action: ACTIONS.MAKE_RECEPTIONIST_UNACTIVE});
 
     res.status(204).json({
       status: "success",

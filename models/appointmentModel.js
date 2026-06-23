@@ -27,7 +27,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["قيد الانتظار", "مكتمل", "ملغى"],
+      enum: ["قيد الانتظار", "مكتمل", "ملغى","مؤكد"],
       default: "قيد الانتظار",
     },
     fees: Number,
