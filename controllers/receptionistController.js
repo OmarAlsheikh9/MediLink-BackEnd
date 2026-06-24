@@ -84,7 +84,7 @@ export const createReceptionist = catchAsync(async (req, res, next) => {
 export const getAllReceptionist = catchAsync(async (req, res, next) => {
   const receptionists = await Receptionist.find().populate({
     path: "user",
-    select: "-_id",
+    select: "_id",
   });
   flattenAndRespond(res, { key: "receptionists", data: receptionists });
 });
@@ -108,7 +108,9 @@ export const updateReceptionist = catchAsync(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new AppError("Invalid Id", 400));
   }
-  const receptionistProfile = await Receptionist.findById(id);
+  const receptionistProfile = await Receptionist.findOne({ user: id }).populate(
+    "user",
+  );
   if (!receptionistProfile) {
     return next(new AppError("Receptionist not found", 404));
   }
